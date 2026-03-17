@@ -1,0 +1,8 @@
+{
+  "languageContext": "react",
+  "framework": "react",
+  "react": {
+    "jsx": true,
+    "tsx": true
+  }
+}

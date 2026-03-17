@@ -1,0 +1,63 @@
+Precisamos de algumas informações principais:
+
+1. Parte = Categoria:
+    Será necessário criar uma tabela onde contem as categorias dos produtos, para salvar novas peças quando necessário.
+    A tabele deve conter as seguintes chaves:
+        ID;
+        Nome Categoria;
+        Descrição;
+2. Marca:
+    Necessário para deixar registrado as marcas das peças:
+        ID;
+        Marca;
+3. Veiculos:
+    Informar para qual o veiculo:
+        id:
+        Veiculo;
+4. Modelo:
+    id:
+    Modelo;
+5. Imagens:
+    Será necessário armazenar imagens então tabela para imagens:
+        id;
+        Caminho_Imagem_Primaria;
+        Caminho_Imagem_Segundaria;
+        Caminho_Imagem_Terciaria;
+        Caminho_Imagem_Quartaria;
+        Caminho_Imagem_Quintaria;
+        Caminho_Imagem_Sextaria;
+
+6. Lista de preços:
+    Id;
+    Id_Produto
+    Valor_ML;
+    Valor_Original;
+    Valor_Venda;
+
+Para unificar essas informações, será necessário a tabela principal:
+    Id;
+    Id_Categoria;
+    Id_Marca;
+    Id_veiculo;
+    Id_Modelo;
+    Descrição;
+    Ano;
+    Codigo;
+    Data_Entrada;
+    Data_venda;
+    Valor_venda;
+    Valor_Liquido;
+    Anuncio; (Link ML)
+    id_Imagens;
+=======================
+Banco de dados criado !! Será necessário criar as API com as informações:
+Para Site Institucional:
+ 1.  Home:
+  - Api para retonar todas as peças na proxima pagina, ou seja, deve existir um filtro para as categorias e outros (sendo enviado nada)
+  - Api para retornar as peças destaques.
+2. Pagina catalogo:
+ - Retornar os dados com paginação (Retornar todas as informações necessarias). Ou seja se abrir uma peça já está renderizada os dados.
+ - Criar os filtros (Inicio Categoria, marca, preço)
+3. Detalhe produto.
+    - Criar um endpoint onde vai retornar peças relacionadas aassim que abrir
+        Ou seja trazer peças com a mesma categoria relacionada, como podem ter milhares, fazer uma romdomização das produtos achada e trazer os 8 primeiros e listar.

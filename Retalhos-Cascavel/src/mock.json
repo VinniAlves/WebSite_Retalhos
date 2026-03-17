@@ -1,0 +1,85 @@
+{
+    "carrocel": [
+        {
+            "idProduto": "3hfdsr59234fs",
+            "imgurl": "../public/lateral.jpg",
+            "imagens": [
+                {"id": "img1", "image": "../public/lateral.jpg"},
+                {"id": "img2", "image": "../public/lateral.jpg"},
+                {"id": "img3", "image": "../public/lateral.jpg"}
+            ],
+            "title": "Porta Dianteira Esquerda BMW X5 F15 - Original Usada",
+            "description": "Porta dianteira esquerda original usada para BMW X5, modelo F15. Peça em excelente estado, sem amassados graves, com pintura original prata. Inclui máquina de vidro e fechadura. Ideal para reposição mantendo a originalidade e alinhamento do veículo. Fotos reais do produto.",
+            "type": "Portas",
+            "price": "R$ 3.500,00",
+            "linkML": "https://mercadolivre.com.br",
+            "linkWpp": "https://wa.me/55999999999"
+        },
+        {
+            "idProduto": "3hfdsr59234fs33",
+            "imgurl": "../public/lateral.jpg",
+            "imagens": [
+                {"id": "img1", "image": "../public/lateral.jpg"},
+                {"id": "img2", "image": "../public/lateral.jpg"}
+            ],
+            "title": "Para-lama Dianteiro Esquerdo BMW X5 F15",
+            "description": "Peças genuínas que garantem encaixe e durabilidade. Para-lama de lataria.",
+            "type": "Lataria",
+            "price": "R$ 1.800,00",
+            "linkML": "https://mercadolivre.com.br",
+            "linkWpp": "https://wa.me/55999999999"
+        },
+        {
+            "idProduto": "3hfdsr5923434fs",
+            "imgurl": "../public/lateral.jpg",
+            "imagens": [
+                {"id": "img1", "image": "../public/lateral.jpg"}
+            ],
+            "title": "Retrovisor Esquerdo BMW X5 F15",
+            "description": "Retrovisor esquerdo original completo com pisca e ajuste elétrico.",
+            "type": "Retrovisores",
+            "price": "R$ 2.200,00",
+            "linkML": "https://mercadolivre.com.br",
+            "linkWpp": "https://wa.me/55999999999"
+        },
+        {
+            "idProduto": "3hfdsr59234f4s",
+            "imgurl": "../public/lateral.jpg",
+            "imagens": [
+                {"id": "img1", "image": "../public/lateral.jpg"}
+            ],
+            "title": "Capô BMW X5 F15",
+            "description": "Capô original usado de lataria, excelente qualidade com pintura prata.",
+            "type": "Lataria",
+            "price": "R$ 3.000,00",
+            "linkML": "https://mercadolivre.com.br",
+            "linkWpp": "https://wa.me/55999999999"
+        },
+        {
+            "idProduto": "3hfdsr59234fs143",
+            "imgurl": "../public/lateral.jpg",
+            "imagens": [
+                {"id": "img1", "image": "../public/lateral.jpg"}
+            ],
+            "title": "Lanterna Traseira Direita BMW X5 F15",
+            "description": "Lanterna traseira direita led original",
+            "type": "Iluminação",
+            "price": "R$ 1.500,00",
+            "linkML": "https://mercadolivre.com.br",
+            "linkWpp": "https://wa.me/55999999999"
+        },
+        {
+            "idProduto": "3hfdsr59234fs3",
+            "imgurl": "../public/lateral.jpg",
+            "imagens": [
+                {"id": "img1", "image": "../public/lateral.jpg"}
+            ],
+            "title": "Grade Frontal Inferior BMW X5 F15",
+            "description": "Estoque pronto e envio seguro",
+            "type": "Para-choques",
+            "price": "R$ 800,00",
+            "linkML": "https://mercadolivre.com.br",
+            "linkWpp": "https://wa.me/55999999999"
+        }
+    ]
+}
