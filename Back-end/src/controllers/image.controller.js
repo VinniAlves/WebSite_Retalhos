@@ -19,7 +19,7 @@ exports.createImage = async (req, res) => {
    
     for (const val of valoresInsert) {
       await db.query(
-        `INSERT INTO image (id_produto, caminho_image) VALUES ($1, $2)`,
+        `INSERT INTO image (id_produto, caminho_image, delete_logic) VALUES ($1, $2, false)`,
         val
       );
     }
@@ -52,5 +52,18 @@ exports.viewImage = async(req,res)=>{
     res.status(200).send(response.rows);
 }
 
+exports.deleteImage = async (req,res) =>{
+    const {id} = req.params;
+    await db.query(`UPDATE image SET delete_logic = true WHERE id = ${id}`)
+    res.status(200).send({
+        message: "Imagem deletada com sucesso"
+    })
+}
 
-
+exports.activeImage = async (req,res) =>{
+    const {id} = req.params;
+    await db.query(`UPDATE image SET delete_logic = false WHERE id = ${id}`)
+    res.status(200).send({
+        message: "Imagem ativada com sucesso"
+    })
+}

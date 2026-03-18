@@ -5,6 +5,8 @@ const { uploadImages } = require("../middleware/multer");
 
 router.post('/image/:id', uploadImages.array('imagens'), imageController.createImage);
 router.get('/image/:id', imageController.viewImage);
+router.delete('/image/delete/:id', imageController.deleteImage);
+router.put('/image/active/:id', imageController.activeImage);
 
 module.exports = router;
 
