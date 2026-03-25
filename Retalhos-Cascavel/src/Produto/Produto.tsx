@@ -1,40 +1,91 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import HandshakeIcon from '@mui/icons-material/Handshake';
 import * as S from "./styles";
-import mock from "../mock.json";
+
 
 function Produto() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [produto, setProduto] = useState<any>(null);
+    const location = useLocation();
+
+    const formatProduct = (p: any): ProdutosInterface.FormattedProduct | null => {
+        if (!p) return null;
+        // Se já estiver formatado (mock), retorna como está
+        if (p.imagens && p.imagens.length > 0 && typeof p.imagens[0] === 'object') {
+            return p as ProdutosInterface.FormattedProduct;
+        }
+        // Se imagens for um array de strings (API), converte para array de objetos esperado pelo template
+        if (p.imagens && p.imagens.length > 0 && typeof p.imagens[0] === 'string') {
+            return {
+                ...p,
+                imagens: p.imagens.map((img: string, idx: number) => ({
+                    id: String(idx),
+                    image: img.startsWith('http') ? img : `http://localhost:8080/retalhos.cascavel${img}`
+                }))
+            };
+        }
+        // Se for um array vazio ou outro caso, garante que imagens é um array de objetos
+        return { ...p, imagens: [] } as ProdutosInterface.FormattedProduct;
+    };
+
+    const [produto, setProduto] = useState<ProdutosInterface.FormattedProduct | null>(formatProduct(location.state?.product));
     const [mainImage, setMainImage] = useState<string>("");
+    const [produtosRelacionados, setProdutosRelacionados] = useState<ProdutosInterface.ProductProp[]>([]);
 
     useEffect(() => {
-        // Find product by id
-        const foundProduto = mock.carrocel.find((item) => item.idProduto === id);
-        if (foundProduto) {
-            setProduto(foundProduto);
-            if (foundProduto.imagens && foundProduto.imagens.length > 0) {
-                setMainImage(foundProduto.imagens[0].image);
-            } else {
-                setMainImage(foundProduto.imgurl);
-            }
+        let currentProduct = produto;
+        // if (!currentProduct) {
+        //     // Find product by id
+        //     const foundProduto = mock.carrocel.find((item) => item.idProduto === id || String((item as any).id) === id);
+        //     if (foundProduto) {
+        //         currentProduct = formatProduct(foundProduto);
+        //         setProduto(currentProduct);
+        //     }
+        // }
+        
+        if (currentProduct) {
+             if (currentProduct.imagens && currentProduct.imagens.length > 0) {
+                 setMainImage(currentProduct.imagens[0].image);
+             }
         }
         window.scrollTo(0, 0);
-    }, [id]);
+    }, [id, produto]);
 
     if (!produto) return <S.Container><h2>Produto não encontrado</h2></S.Container>;
 
-    // Filter related products (for example, same type but different id)
-    const relacioandos = mock.carrocel.filter(item => item.idProduto !== id).slice(0, 4);
+    // // Filter related products (for example, same type but different id)
+    // const relacioandos = mock.carrocel.filter(item => String(item.idProduto) !== String(id)).slice(0, 4);
+
+    useEffect(() => {
+        const url = `http://localhost:8080/retalhos.cascavel/products/related/${id}`;
+
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch(url,{
+                    method: 'POST',
+                });
+                
+                if(!response.ok){
+                    throw new Error(`HTTP error! status: ${response.status}`)
+                }
+                const data = await response.json();
+                setProdutosRelacionados(data);
+
+            } catch (error) {
+                console.error("Erro ao buscar produtos:", error);
+            }
+        };
+        fetchProducts();
+    }, []);
+
 
     return (
         <S.Container>
             <S.MainContent>
                 <S.ImagesSection>
-                    <S.MainImage src={mainImage} alt={produto.title} />
+                    <S.MainImage src={mainImage} alt={produto.titulo} />
                     {produto.imagens && produto.imagens.length > 0 && (
                         <S.ThumbnailsContainer>
                             {produto.imagens.map((img: any) => (
@@ -51,14 +102,14 @@ function Produto() {
                 </S.ImagesSection>
 
                 <S.InfoSection>
-                    <S.Title>{produto.title}</S.Title>
-                    <S.Price>{produto.price}</S.Price>
+                    <S.Title>{produto.titulo}</S.Title>
+                    <S.Price>{produto.valor_original}</S.Price>
                     
                     <S.ButtonContainer>
-                        <S.WppButton href={produto.linkWpp} target="_blank" rel="noopener noreferrer">
+                        <S.WppButton href={`https://wa.me/5545999870968?text=Olá, tenho interesse no produto: ${produto.titulo} - Código: ${produto.codigo}`} target="_blank" rel="noopener noreferrer">
                             <WhatsAppIcon /> Falar no WhatsApp
                         </S.WppButton>
-                        <S.MLButton href={produto.linkML} target="_blank" rel="noopener noreferrer">
+                        <S.MLButton href={produto.anuncio_ml} target="_blank" rel="noopener noreferrer">
                             <HandshakeIcon /> Comprar no Mercado Livre
                         </S.MLButton>
                     </S.ButtonContainer>
@@ -69,20 +120,24 @@ function Produto() {
 
             <S.DescriptionSection>
                 <S.SectionTitle>DESCRIÇÃO DO PRODUTO</S.SectionTitle>
-                <S.DescriptionText>{produto.description}</S.DescriptionText>
+                <S.DescriptionText>{produto.descricao}</S.DescriptionText>
             </S.DescriptionSection>
 
             <S.RelatedSection>
                 <S.SectionTitle>PEÇAS RELACIONADAS</S.SectionTitle>
                 <S.CarrocelContent>
-                    {relacioandos.map((item, index) => (
-                        <S.CarrocelItem key={index} onClick={() => navigate(`/produto/${item.idProduto}`)}>
-                            <img src={item.imgurl} alt={item.title} />
+                    {produtosRelacionados.map((item, index) => (
+                        <S.CarrocelItem key={index} onClick={() => {
+                            navigate(`/produto/${item.id}`, { state: { product: item } });
+                            setProduto(formatProduct(item));
+                            window.scrollTo(0, 0);
+                        }}>
+                            <img src={item.imagens && item.imagens.length > 0 ? (item.imagens[0].startsWith('http') ? item.imagens[0] : `http://localhost:8080/retalhos.cascavel${item.imagens[0]}`) : ""} alt={item.titulo} />
                             <S.DivText>
-                                <h2>{item.title}</h2>
+                                <h2>{item.titulo}</h2>
                                 <div>
-                                    <p>{item.type}</p>
-                                    <p style={{ color: "#8b2023", fontWeight: "bold" }}>{item.price}</p>
+                                    <p>{item.categoria_descricao}</p>
+                                    <p style={{ color: "#8b2023", fontWeight: "bold" }}>{item.valor_original}</p>
                                 </div>
                             </S.DivText>
                         </S.CarrocelItem>

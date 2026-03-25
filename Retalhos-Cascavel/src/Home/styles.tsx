@@ -148,6 +148,12 @@ export const CarrocelItem = styled.div`
     border-radius: 1rem;
     gap:1rem;
     padding: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
 
     img{
         max-width: 16rem;

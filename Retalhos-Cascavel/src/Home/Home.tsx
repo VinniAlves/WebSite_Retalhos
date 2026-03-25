@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header/Hearder"
+
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { Container } from "./styles"
@@ -9,9 +9,9 @@ import backgroundImgTwo from "../assets/image/backgroundTakeTwo.svg"
 import Cash from '../assets/image/Cash.svg'
 import Leteral from '../assets/image/Leteral.svg'
 import Transport from '../assets/image/Transport.svg'
-import Footer from "../components/Footer/Footer"
 import * as S from "./styles";
-import carrocel from "../mock.json";
+import converNumbers from "../utils/ConvertNumbers";
+
 
 const background = [
     {
@@ -41,9 +41,12 @@ const bodyPageDescription = [
 ]
 
 
+
+
 function Home() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const navigate = useNavigate();
+    const [products, setProducts] = useState<ProdutosInterface.ProductProp[]>([]);
 
     const nextImage = useCallback(() => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % background.length);
@@ -60,6 +63,40 @@ function Home() {
 
         return () => clearInterval(interval);
     }, [nextImage]);
+
+    useEffect(() => {
+        const url = 'http://localhost:8080/retalhos.cascavel/products/filter';
+        const bodyRow = {
+            destaque: true
+        }
+
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch(url,{
+                    method: 'POST',
+                    body: JSON.stringify(bodyRow),
+                    headers:{
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if(!response.ok){
+                    throw new Error(`HTTP error! status: ${response.status}`)
+                }
+                const data = await response.json();
+                setProducts(data.products);
+
+            } catch (error) {
+                console.error("Erro ao buscar produtos:", error);
+            }
+        };
+        fetchProducts();
+    }, []);
+
+    const HandleViewPhoto = useCallback((image:string)=>{
+            const mergeImage = "http://localhost:8080/retalhos.cascavel"+image
+            return mergeImage;
+    },[])
 
     return (
         <Container>
@@ -99,19 +136,20 @@ function Home() {
             <S.Carrocel>
                 <h1 style={{ fontSize: "2rem" }}>DESTAQUE DA LOJA</h1>
                 <S.CarrocelContent>
-                    {carrocel.carrocel.map((item, index) => (
-                        <S.CarrocelItem key={index} onClick={() => navigate(`/produto/${item.idProduto}`)} style={{ cursor: 'pointer' }}>
-                            <img src={item.imgurl} alt="" />
+                    {products.map((item, index) => (
+                        <S.CarrocelItem key={index} onClick={() => navigate(`/produto/${item.id}`, { state: { product: item } })} style={{ cursor: 'pointer' }}>
+                            <img src={HandleViewPhoto(item.imagens[0])} alt="" />
                             <S.DivText>
-                                <h2>{item.title}</h2>
+                                <h2>{item.titulo}</h2>
                                 <div>
-                                    <p>{item.type}</p>
-                                    <p style={{color: "#8b2023", fontWeight: "bold" }}>{item.price}</p>
+                                    <p>{item.nome_categoria}</p>
+                                    <p style={{color: "#8b2023", fontWeight: "bold" }}>R$ {converNumbers(item.valor_original)}</p>
                                 </div>
                                 
                             </S.DivText>
                         </S.CarrocelItem>
                     ))}
+            
                 </S.CarrocelContent>
             </S.Carrocel>
         </Container>
