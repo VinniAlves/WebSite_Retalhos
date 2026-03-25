@@ -7,23 +7,21 @@ function Footer() {
     return (
         <S.Container>
             <S.ContainerImg>
-                <img src={logo} alt="" />
+                <img src={logo} alt="Retalhos Cascavel Logo" />
             </S.ContainerImg>
             <S.ContainerInfoContact>
                 <h2>CANAIS DE ATENDIMENTO</h2>
                 <S.WhatsAppLink href="https://wa.me/5545999870968" target="_blank" rel="noopener noreferrer">
-                    <WhatsAppIcon />
+                    <WhatsAppIcon fontSize="large" />
                     <h3>Whatsapp: (45) 99987-0968</h3>
                 </S.WhatsAppLink>
-
             </S.ContainerInfoContact>
             <S.ContainerStorage>
                 <h2>COMPRE COM SEGURANÇA</h2>
-                <a href='https://lista.mercadolivre.com.br/_CustId_1131399814'>
-                    <img src={mercadolibre} alt="" />
+                <a href="https://lista.mercadolivre.com.br/_CustId_1131399814" target="_blank" rel="noopener noreferrer">
+                    <img src={mercadolibre} alt="Mercado Livre" />
                 </a>
             </S.ContainerStorage>
-
         </S.Container>
     )
 }

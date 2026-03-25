@@ -75,7 +75,10 @@ function Catalogo() {
     }, [selectedCategorias, selectedMarcas, minPrice, maxPrice]);
 
     useEffect(() => {
+        let shouldFetchAll = true;
+
         if (location.state?.products) {
+            shouldFetchAll = false;
             setProducts(location.state.products);
             if (location.state?.pagination) {
                 setPage(location.state.pagination.currentPage);
@@ -84,16 +87,26 @@ function Catalogo() {
             if (location.state?.selectedCategorias) {
                 setSelectedCategorias(location.state.selectedCategorias);
             }
-        } else if (!location.state?.searchTerm) {
-            // Se não tem produtos e não há termo de busca, faz fetch inicial
-            handleFilterSearch(1);
-        }
+        } 
         
         if (location.state?.searchTerm) {
+            shouldFetchAll = false;
             setSearchTerm(location.state.searchTerm);
         }
+
+        if (shouldFetchAll) {
+            // Se não tem produtos e não há termo de busca, faz fetch inicial limpo
+            handleFilterSearch(1);
+        }
+
+        // Limpa o location.state para que ao recarregar a página (F5) 
+        // ou acessar pelo URL diretamente, não segure os filtros antigos 
+        // e traga todos os itens (page 1 sem parâmetros).
+        if (location.state) {
+            navigate(location.pathname, { replace: true, state: null });
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.state]);
+    }, [location.pathname]);
 
     // Fetch Categorias and Marcas on mount
     useEffect(() => {
@@ -154,42 +167,47 @@ function Catalogo() {
         <>
            <S.Container>
             <S.ContainerFilter> 
-                <div>
+                <S.FilterHeaderTop>
                     <h2>Filtros</h2>
+                </S.FilterHeaderTop>
+                
+                <S.FilterBody>
                     <div>
                         <form onSubmit={(e) => { e.preventDefault(); handleFilterSearch(1); }}>
                             <S.FilterHeader onClick={() => setIsOpenCategoria(!isOpenCategoria)}>
                                 Categoria {isOpenCategoria ? '▲' : '▼'}
                             </S.FilterHeader>
                             {isOpenCategoria && categorias.map((item) => (
-                                <div key={item.id}>
+                                <S.CheckboxLabel key={item.id}>
                                     <input 
                                         type="checkbox" 
                                         value={item.id} 
                                         onChange={handleCheckboxCategoria} 
                                         checked={selectedCategorias.includes(item.id)}
-                                    /> {item.nome_categoria} <br/>
-                                </div>
+                                    /> 
+                                    {item.nome_categoria}
+                                </S.CheckboxLabel>
                             ))}
                                 <S.Divider/>
                             <S.FilterHeader onClick={() => setIsOpenMarca(!isOpenMarca)}>
                                 Marca {isOpenMarca ? '▲' : '▼'}
                             </S.FilterHeader>
                             {isOpenMarca && marcas.map((item) => (
-                                <div key={item.id}>
+                                <S.CheckboxLabel key={item.id}>
                                     <input 
                                         type="checkbox" 
                                         value={item.id} 
                                         onChange={handleCheckboxMarca} 
                                         checked={selectedMarcas.includes(item.id)}
-                                    /> {item.marca} <br/>
-                                </div>
+                                    /> 
+                                    {item.marca}
+                                </S.CheckboxLabel>
                             ))}
                         </form>
                      </div>
                     <S.Divider/>
                     <S.FilterHeader onClick={() => setIsOpenPreco(!isOpenPreco)}>
-                        Preço {isOpenPreco ? '-' : '+'}
+                        Preço {isOpenPreco ? '▲' : '▼'}
                     </S.FilterHeader>
                     {isOpenPreco && (
                         <S.Pricing>
@@ -210,9 +228,8 @@ function Catalogo() {
                             />
                         </S.Pricing>
                     )}
-                </div>
-                <button onClick={() => handleFilterSearch(1)}>Buscar</button>
-              
+                    <S.SearchButton onClick={() => handleFilterSearch(1)}>Buscar</S.SearchButton>
+                </S.FilterBody>
             </S.ContainerFilter>
             <S.ContainerProduct>
                 {products.length > 0 ? (

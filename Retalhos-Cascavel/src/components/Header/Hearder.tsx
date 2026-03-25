@@ -2,6 +2,8 @@ import { useState } from "react";
 import logo from '../../assets/image/Logo.png'
 import * as S from "./styles";
 import SearchIcon from '@mui/icons-material/Search';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from "react-router-dom"
 
 const buttonsSearch = [
@@ -39,6 +41,7 @@ const buttonsSearch = [
 function Header() {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleSearch = async () => {
         if (!searchTerm.trim()) return;
@@ -106,7 +109,6 @@ function Header() {
     return (
         <S.Container>
             <S.Search>
-                
                 <S.Logo src={logo} alt="" onClick={()=> navigate("/")} style={{ cursor: 'pointer' }}/>
                 
                 <S.InputSearch>
@@ -122,8 +124,16 @@ function Header() {
                         onKeyDown={handleKeyDown}
                     />
                 </S.InputSearch>
-                
+
+                <S.MobileMenuButton onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                    {mobileMenuOpen ? (
+                        <CloseIcon style={{ fontSize: '2.5rem', color: '#c93034' }} />
+                    ) : (
+                        <MenuIcon style={{ fontSize: '2.5rem', color: '#c93034' }} />
+                    )}
+                </S.MobileMenuButton>
             </S.Search>
+
             <S.ButtonSearch>
                 {
                     buttonsSearch.map((button, index) => (
@@ -137,6 +147,44 @@ function Header() {
                     ))
                 }
             </S.ButtonSearch>
+
+            <S.MobileMenu isOpen={mobileMenuOpen}>
+                <S.MobileInputSearch>
+                    <SearchIcon 
+                        style={{ color: "#cfcfcfff", cursor: 'pointer' }} 
+                        onClick={() => {
+                            handleSearch();
+                            setMobileMenuOpen(false);
+                        }}
+                    />
+                    <input 
+                        type="text" 
+                        placeholder="Buscar peça.." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleSearch();
+                                setMobileMenuOpen(false);
+                            }
+                        }}
+                    />
+                </S.MobileInputSearch>
+                
+                <S.MobileMenuLinks>
+                    {buttonsSearch.map((button, index) => (
+                        <button 
+                            key={index}
+                            onClick={() => {
+                                handleCategoryFilter(button.id);
+                                setMobileMenuOpen(false);
+                            }}
+                        >
+                            {button.name}
+                        </button>
+                    ))}
+                </S.MobileMenuLinks>
+            </S.MobileMenu>
         </S.Container>
     )
 }
