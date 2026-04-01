@@ -8,6 +8,9 @@ import { ApiError } from '../../services/api'
 import { AlertBanner } from '../../components/ui/AlertBanner'
 import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
+import { ConfirmModal } from '../../components/ui/ConfirmModal'
+import { toast } from 'react-toastify'
+import { ImageUploader } from '../../components/ui/ImageUploader'
 import type { ProductDetail } from '../../types/product'
 import type { ProductImageRow } from '../../types/image'
 
@@ -63,6 +66,12 @@ export default function ProductEditPage() {
   const [images, setImages] = useState<ProductImageRow[]>([])
   const [imgLoading, setImgLoading] = useState(false)
   const [uploadFiles, setUploadFiles] = useState<File[]>([])
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    img: ProductImageRow | null
+    action: 'activate' | 'deactivate'
+    loading: boolean
+  }>({ isOpen: false, img: null, action: 'activate', loading: false })
 
   const loadProduct = useCallback(async () => {
     if (!Number.isFinite(productId) || productId < 1) {
@@ -135,8 +144,9 @@ export default function ProductEditPage() {
     try {
       await productService.update(productId, patch)
       await loadProduct()
+      toast.success('Produto atualizado com sucesso!')
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Erro ao atualizar')
+      toast.error(e instanceof ApiError ? e.message : 'Erro ao atualizar')
     } finally {
       setSaving(false)
     }
@@ -150,21 +160,31 @@ export default function ProductEditPage() {
       await imageService.upload(productId, uploadFiles)
       setUploadFiles([])
       await loadImages()
+      toast.success('Novas imagens enviadas com sucesso!')
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Erro no upload')
+      toast.error(e instanceof ApiError ? e.message : 'Erro no upload')
     } finally {
       setSaving(false)
     }
   }
 
-  const toggleImage = async (img: ProductImageRow, activate: boolean) => {
-    setError(null)
+  const handleConfirmAction = async () => {
+    const { action, img } = confirmModal
+    if (!img) return
+    setConfirmModal((prev) => ({ ...prev, loading: true }))
     try {
-      if (activate) await imageService.activate(img.id)
-      else await imageService.deactivate(img.id)
+      if (action === 'activate') {
+        await imageService.activate(img.id)
+        toast.success('Imagem ativada com sucesso!')
+      } else {
+        await imageService.deactivate(img.id)
+        toast.success('Imagem desativada com sucesso!')
+      }
       await loadImages()
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Erro na imagem')
+      toast.error(e instanceof ApiError ? e.message : 'Erro na imagem')
+    } finally {
+      setConfirmModal({ isOpen: false, img: null, action: 'activate', loading: false })
     }
   }
 
@@ -419,11 +439,11 @@ export default function ProductEditPage() {
                     </td>
                     <td>
                       {img.delete_logic ? (
-                        <Button variant="secondary" onClick={() => void toggleImage(img, true)}>
+                        <Button variant="secondary" onClick={() => setConfirmModal({ isOpen: true, action: 'activate', img, loading: false })}>
                           Ativar
                         </Button>
                       ) : (
-                        <Button variant="danger" onClick={() => void toggleImage(img, false)}>
+                        <Button variant="danger" onClick={() => setConfirmModal({ isOpen: true, action: 'deactivate', img, loading: false })}>
                           Desativar
                         </Button>
                       )}
@@ -435,13 +455,10 @@ export default function ProductEditPage() {
           </div>
         )}
         <div className="ui-field" style={{ marginTop: '1rem' }}>
-          <label htmlFor="e-newimg">Adicionar imagens</label>
-          <input
-            id="e-newimg"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(e) => setUploadFiles(Array.from(e.target.files || []))}
+          <label>Adicionar novas imagens</label>
+          <ImageUploader
+            files={uploadFiles}
+            onChange={setUploadFiles}
           />
         </div>
         <Button
@@ -452,6 +469,15 @@ export default function ProductEditPage() {
           Enviar novas imagens
         </Button>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        loading={confirmModal.loading}
+        title={confirmModal.action === 'activate' ? 'Ativar Imagem' : 'Desativar Imagem'}
+        message={`Deseja realmente ${confirmModal.action === 'activate' ? 'ativar' : 'desativar'} esta imagem?`}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmModal({ isOpen: false, img: null, action: 'activate', loading: false })}
+      />
     </>
   )
 }

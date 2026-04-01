@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertBanner } from '../../components/ui/AlertBanner'
 import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
+import { ConfirmModal } from '../../components/ui/ConfirmModal'
 import { ApiError } from '../../services/api'
+import { toast } from 'react-toastify'
 
 export interface CrudFieldDef {
   name: string
@@ -40,6 +42,12 @@ export default function EntityAdminPage<T extends { id: number; delete_logic?: b
   const [editing, setEditing] = useState<T | null>(null)
   const [form, setForm] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    id: number | null
+    action: 'activate' | 'deactivate'
+    loading: boolean
+  }>({ isOpen: false, id: null, action: 'activate', loading: false })
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -92,33 +100,39 @@ export default function EntityAdminPage<T extends { id: number; delete_logic?: b
     setSaving(true)
     setError(null)
     try {
-      if (modal === 'create') await config.create(form)
-      else if (modal === 'edit' && editing) await config.update(editing.id, form)
+      if (modal === 'create') {
+        await config.create(form)
+        toast.success(`${config.title} criado com sucesso!`)
+      } else if (modal === 'edit' && editing) {
+        await config.update(editing.id, form)
+        toast.success(`${config.title} atualizado com sucesso!`)
+      }
       closeModal()
       await refresh()
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Não foi possível salvar')
+      toast.error(e instanceof ApiError ? e.message : 'Não foi possível salvar')
     } finally {
       setSaving(false)
     }
   }
 
-  const onActivate = async (id: number) => {
+  const handleConfirmAction = async () => {
+    const { action, id } = confirmModal
+    if (id === null) return
+    setConfirmModal((prev) => ({ ...prev, loading: true }))
     try {
-      await config.activate(id)
+      if (action === 'activate') {
+        await config.activate(id)
+        toast.success('Registro ativado com sucesso!')
+      } else {
+        await config.deactivate(id)
+        toast.success('Registro desativado com sucesso!')
+      }
       await refresh()
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Erro ao ativar')
-    }
-  }
-
-  const onDeactivate = async (id: number) => {
-    if (!window.confirm('Desativar este registro?')) return
-    try {
-      await config.deactivate(id)
-      await refresh()
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Erro ao desativar')
+      toast.error(e instanceof ApiError ? e.message : `Erro ao ${action === 'activate' ? 'ativar' : 'desativar'}`)
+    } finally {
+      setConfirmModal({ isOpen: false, id: null, action: 'activate', loading: false })
     }
   }
 
@@ -176,11 +190,11 @@ export default function EntityAdminPage<T extends { id: number; delete_logic?: b
                           Editar
                         </Button>
                         {isInactive(row) ? (
-                        <Button variant="secondary" onClick={() => onActivate(row.id)}>
+                        <Button variant="secondary" onClick={() => setConfirmModal({ isOpen: true, action: 'activate', id: row.id, loading: false })}>
                           Ativar
                         </Button>
                       ) : (
-                        <Button variant="danger" onClick={() => onDeactivate(row.id)}>
+                        <Button variant="danger" onClick={() => setConfirmModal({ isOpen: true, action: 'deactivate', id: row.id, loading: false })}>
                           Desativar
                         </Button>
                       )}
@@ -194,13 +208,12 @@ export default function EntityAdminPage<T extends { id: number; delete_logic?: b
       </div>
 
       {modal ? (
-        <div className="ui-modal-backdrop" role="presentation" onClick={closeModal}>
+        <div className="ui-modal-backdrop" role="presentation">
           <div
             className="ui-modal"
             role="dialog"
             aria-modal
             aria-labelledby="entity-modal-title"
-            onClick={(e) => e.stopPropagation()}
           >
             <h2 id="entity-modal-title" className="ui-modal__title">
               {modal === 'create' ? 'Novo registro' : 'Editar registro'}
@@ -236,6 +249,15 @@ export default function EntityAdminPage<T extends { id: number; delete_logic?: b
           </div>
         </div>
       ) : null}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        loading={confirmModal.loading}
+        title={confirmModal.action === 'activate' ? 'Ativar Registro' : 'Desativar Registro'}
+        message={`Deseja realmente ${confirmModal.action === 'activate' ? 'ativar' : 'desativar'} este registro?`}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmModal({ isOpen: false, id: null, action: 'activate', loading: false })}
+      />
     </>
   )
 }

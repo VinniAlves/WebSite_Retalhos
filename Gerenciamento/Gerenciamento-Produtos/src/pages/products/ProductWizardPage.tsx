@@ -7,6 +7,8 @@ import { ApiError } from '../../services/api'
 import { AlertBanner } from '../../components/ui/AlertBanner'
 import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
+import { toast } from 'react-toastify'
+import { ImageUploader } from '../../components/ui/ImageUploader'
 
 export default function ProductWizardPage() {
   const navigate = useNavigate()
@@ -42,7 +44,7 @@ export default function ProductWizardPage() {
     setSaving(true)
     setError(null)
     try {
-      const res = await productService.create({
+      const payload = {
         id_categoria: Number(id_categoria),
         id_marca: Number(id_marca),
         id_modelo: Number(id_modelo),
@@ -52,16 +54,27 @@ export default function ProductWizardPage() {
         ano: Number(ano),
         codigo,
         data_entrada,
-        data_venda: null,
         anuncio_ml,
         valor_original,
         valor_ml: null,
         destaque,
-      })
-      setCreatedId(res.id)
-      setStep(2)
+      }
+
+      if (createdId) {
+        await productService.update(createdId, payload)
+        setStep(2)
+        toast.success('Produto atualizado com sucesso!')
+      } else {
+        const res = await productService.create({
+          ...payload,
+          data_venda: null,
+        })
+        setCreatedId(res.id)
+        setStep(2)
+        toast.success('Produto criado com sucesso!')
+      }
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Erro ao criar produto')
+      toast.error(e instanceof ApiError ? e.message : 'Erro ao salvar produto')
     } finally {
       setSaving(false)
     }
@@ -74,10 +87,11 @@ export default function ProductWizardPage() {
     try {
       if (files.length > 0) {
         await imageService.upload(createdId, files)
+        toast.success('Imagens enviadas com sucesso!')
       }
-      navigate('/produtos', { state: { flash: 'Produto criado com sucesso.' } })
+      navigate('/produtos')
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Erro ao enviar imagens')
+      toast.error(e instanceof ApiError ? e.message : 'Erro ao enviar imagens')
     } finally {
       setSaving(false)
     }
@@ -118,7 +132,7 @@ export default function ProductWizardPage() {
       ) : step === 1 ? (
         <div className="ui-card">
           <div className="ui-field">
-            <label htmlFor="w-titulo">Título</label>
+            <label htmlFor="w-titulo">Título *</label>
             <input
               id="w-titulo"
               className="ui-input"
@@ -143,7 +157,7 @@ export default function ProductWizardPage() {
             }}
           >
             <div className="ui-field" style={{ marginBottom: 0 }}>
-              <label htmlFor="w-cat">Categoria</label>
+              <label htmlFor="w-cat">Categoria *</label>
               <select
                 id="w-cat"
                 className="ui-select"
@@ -159,7 +173,7 @@ export default function ProductWizardPage() {
               </select>
             </div>
             <div className="ui-field" style={{ marginBottom: 0 }}>
-              <label htmlFor="w-marca">Marca</label>
+              <label htmlFor="w-marca">Marca *</label>
               <select
                 id="w-marca"
                 className="ui-select"
@@ -175,7 +189,7 @@ export default function ProductWizardPage() {
               </select>
             </div>
             <div className="ui-field" style={{ marginBottom: 0 }}>
-              <label htmlFor="w-mod">Modelo</label>
+              <label htmlFor="w-mod">Modelo *</label>
               <select
                 id="w-mod"
                 className="ui-select"
@@ -191,7 +205,7 @@ export default function ProductWizardPage() {
               </select>
             </div>
             <div className="ui-field" style={{ marginBottom: 0 }}>
-              <label htmlFor="w-vei">Veículo</label>
+              <label htmlFor="w-vei">Veículo *</label>
               <select
                 id="w-vei"
                 className="ui-select"
@@ -291,13 +305,10 @@ export default function ProductWizardPage() {
             Produto #{createdId}. Envie uma ou mais imagens (ou pule para finalizar sem imagens).
           </p>
           <div className="ui-field">
-            <label htmlFor="w-img">Imagens</label>
-            <input
-              id="w-img"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => setFiles(Array.from(e.target.files || []))}
+            <label>Imagens</label>
+            <ImageUploader
+              files={files}
+              onChange={setFiles}
             />
           </div>
           <div className="ui-toolbar">

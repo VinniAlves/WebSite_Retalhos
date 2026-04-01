@@ -8,17 +8,13 @@ import { useReferenceLists } from '../../hooks/useReferenceLists'
 import { AlertBanner } from '../../components/ui/AlertBanner'
 import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
+import { ConfirmModal } from '../../components/ui/ConfirmModal'
+import { toast } from 'react-toastify'
 import type { ProductListRow } from '../../types/product'
 
-function parseNumList(s: string): number[] {
-  if (!s.trim()) return []
-  return s
-    .split(',')
-    .map((x) => Number(x.trim()))
-    .filter((n) => !Number.isNaN(n))
-}
+import { useRef } from 'react'
 
-function MultiIdField({
+function MultiSelectField({
   label,
   value,
   onChange,
@@ -31,33 +27,112 @@ function MultiIdField({
   options: { id: number; inactive?: boolean }[]
   optionLabel: (o: { id: number }) => string
 }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const selectedNames = value
+    .map((id) => {
+      const opt = options.find((o) => o.id === id)
+      return opt ? optionLabel(opt) : String(id)
+    })
+    .join(', ')
+
+  const filteredOptions = options
+    .filter((o) => optionLabel(o).toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      const aSelected = value.includes(a.id)
+      const bSelected = value.includes(b.id)
+      if (aSelected && !bSelected) return -1
+      if (!aSelected && bSelected) return 1
+      return 0
+    })
+
   return (
-    <div className="ui-field" style={{ marginBottom: 0 }}>
+    <div className="ui-field" style={{ marginBottom: 0, position: 'relative' }} ref={containerRef}>
       <label>{label}</label>
       <input
         className="ui-input"
-        placeholder="IDs separados por vírgula (ex: 1, 2)"
-        value={value.length ? value.join(', ') : ''}
-        onChange={(e) => onChange(parseNumList(e.target.value))}
-      />
-      <select
-        className="ui-select"
-        multiple
-        size={4}
-        value={value.map(String)}
-        onChange={(e) => {
-          const selected = Array.from(e.target.selectedOptions).map((o) => Number(o.value))
-          onChange(selected)
+        placeholder={value.length === 0 ? 'Selecione...' : ''}
+        value={isOpen ? search : selectedNames}
+        onChange={(e) => setSearch(e.target.value)}
+        onFocus={() => {
+          setIsOpen(true)
+          setSearch('')
         }}
-        aria-label={label}
-      >
-        {options.map((o) => (
-          <option key={o.id} value={o.id}>
-            {optionLabel(o)}
-            {o.inactive ? ' (inativo)' : ''}
-          </option>
-        ))}
-      </select>
+        onClick={() => setIsOpen(true)}
+      />
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            background: '#1a2332',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: 8,
+            maxHeight: 200,
+            overflowY: 'auto',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+            marginTop: 4,
+          }}
+        >
+          {filteredOptions.length > 0 ? (
+            filteredOptions.map((o) => {
+              const isSelected = value.includes(o.id)
+              return (
+                <div
+                  key={o.id}
+                  onClick={() => {
+                    if (isSelected) {
+                      onChange(value.filter((v) => v !== o.id))
+                    } else {
+                      onChange([...value, o.id])
+                    }
+                  }}
+                  style={{
+                    padding: '8px 12px',
+                    cursor: 'pointer',
+                    backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '0.9rem',
+                    color: '#e8edf4'
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    readOnly
+                    style={{ margin: 0, cursor: 'pointer' }}
+                  />
+                  <span>
+                    {optionLabel(o)} {o.inactive ? <span style={{ opacity: 0.5 }}>(inativo)</span> : ''}
+                  </span>
+                </div>
+              )
+            })
+          ) : (
+            <div style={{ padding: '8px 12px', color: '#999', fontSize: '0.9rem' }}>
+              Nenhum item encontrado
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -79,7 +154,13 @@ export default function ProductListPage() {
   const [destaque, setDestaque] = useState<string>('')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
-  const [actionError, setActionError] = useState<string | null>(null)
+  const [trigger, setTrigger] = useState(0)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    row: ProductListRow | null
+    action: 'activate' | 'deactivate'
+    loading: boolean
+  }>({ isOpen: false, row: null, action: 'activate', loading: false })
 
   const load = useCallback(async () => {
     const p = page
@@ -115,26 +196,26 @@ export default function ProductListPage() {
 
   useEffect(() => {
     void load()
-  }, [load])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, trigger])
 
-  const onDeactivate = async (row: ProductListRow) => {
-    if (!window.confirm(`Desativar o produto "${row.titulo || row.codigo}"?`)) return
-    setActionError(null)
+  const handleConfirmAction = async () => {
+    const { action, row } = confirmModal
+    if (!row) return
+    setConfirmModal((prev) => ({ ...prev, loading: true }))
     try {
-      await productService.deactivate(row.id)
+      if (action === 'activate') {
+        await productService.activate(row.id)
+        toast.success(`Produto "${row.titulo || row.codigo}" ativado com sucesso!`)
+      } else {
+        await productService.deactivate(row.id)
+        toast.success(`Produto "${row.titulo || row.codigo}" desativado com sucesso!`)
+      }
       await load()
     } catch (e) {
-      setActionError(e instanceof ApiError ? e.message : 'Erro ao desativar')
-    }
-  }
-
-  const onActivate = async (row: ProductListRow) => {
-    setActionError(null)
-    try {
-      await productService.activate(row.id)
-      await load()
-    } catch (e) {
-      setActionError(e instanceof ApiError ? e.message : 'Erro ao ativar')
+      toast.error(e instanceof ApiError ? e.message : `Erro ao ${action === 'activate' ? 'ativar' : 'desativar'}`)
+    } finally {
+      setConfirmModal({ isOpen: false, row: null, action: 'activate', loading: false })
     }
   }
 
@@ -163,15 +244,9 @@ export default function ProductListPage() {
         </AlertBanner>
       ) : null}
 
-      {(error || actionError) && (
-        <AlertBanner
-          variant="error"
-          onDismiss={() => {
-            setError(null)
-            setActionError(null)
-          }}
-        >
-          {error || actionError}
+      {error && (
+        <AlertBanner variant="error" onDismiss={() => setError(null)}>
+          {error}
         </AlertBanner>
       )}
 
@@ -183,10 +258,7 @@ export default function ProductListPage() {
             id="prod-search"
             className="ui-input"
             value={searchText}
-            onChange={(e) => {
-              setSearchText(e.target.value)
-              setPage(1)
-            }}
+            onChange={(e) => setSearchText(e.target.value)}
             placeholder="Título, código, marca, modelo…"
           />
         </div>
@@ -204,10 +276,8 @@ export default function ProductListPage() {
               id="destaque"
               className="ui-select"
               value={destaque}
-              onChange={(e) => {
-                setDestaque(e.target.value)
-                setPage(1)
-              }}
+              onChange={(e) => setDestaque(e.target.value)}
+              
             >
               <option value="">Todos</option>
               <option value="true">Sim</option>
@@ -220,10 +290,7 @@ export default function ProductListPage() {
               id="minp"
               className="ui-input"
               value={minPrice}
-              onChange={(e) => {
-                setMinPrice(e.target.value)
-                setPage(1)
-              }}
+              onChange={(e) => setMinPrice(e.target.value)}
               placeholder="1000.00"
             />
           </div>
@@ -233,10 +300,7 @@ export default function ProductListPage() {
               id="maxp"
               className="ui-input"
               value={maxPrice}
-              onChange={(e) => {
-                setMaxPrice(e.target.value)
-                setPage(1)
-              }}
+              onChange={(e) => setMaxPrice(e.target.value)}
               placeholder="5000.00"
             />
           </div>
@@ -251,13 +315,10 @@ export default function ProductListPage() {
               marginTop: '1.25rem',
             }}
           >
-            <MultiIdField
-              label="Categorias (IDs)"
+            <MultiSelectField
+              label="Categorias"
               value={categoria}
-              onChange={(v) => {
-                setCategoria(v)
-                setPage(1)
-              }}
+              onChange={setCategoria}
               options={categories.map((c) => ({
                 id: c.id,
                 inactive: Boolean(c.delete_logic),
@@ -267,39 +328,30 @@ export default function ProductListPage() {
                 return c ? c.nome_categoria : String(o.id)
               }}
             />
-            <MultiIdField
-              label="Marcas (IDs)"
+            <MultiSelectField
+              label="Marcas"
               value={marca}
-              onChange={(v) => {
-                setMarca(v)
-                setPage(1)
-              }}
+              onChange={setMarca}
               options={marks.map((m) => ({ id: m.id, inactive: Boolean(m.delete_logic) }))}
               optionLabel={(o) => {
                 const m = marks.find((x) => x.id === o.id)
                 return m ? m.marca : String(o.id)
               }}
             />
-            <MultiIdField
-              label="Modelos (IDs)"
+            <MultiSelectField
+              label="Modelos"
               value={modelo}
-              onChange={(v) => {
-                setModelo(v)
-                setPage(1)
-              }}
+              onChange={setModelo}
               options={models.map((m) => ({ id: m.id, inactive: Boolean(m.delete_logic) }))}
               optionLabel={(o) => {
                 const m = models.find((x) => x.id === o.id)
                 return m ? m.modelo : String(o.id)
               }}
             />
-            <MultiIdField
-              label="Veículos (IDs)"
+            <MultiSelectField
+              label="Veículos"
               value={veiculo}
-              onChange={(v) => {
-                setVeiculo(v)
-                setPage(1)
-              }}
+              onChange={setVeiculo}
               options={vehicles.map((v) => ({ id: v.id, inactive: Boolean(v.delete_logic) }))}
               optionLabel={(o) => {
                 const v = vehicles.find((x) => x.id === o.id)
@@ -310,6 +362,35 @@ export default function ProductListPage() {
         ) : (
           <p style={{ opacity: 0.7, marginTop: '1rem' }}>Carregando listas…</p>
         )}
+
+        <div style={{ marginTop: '1.25rem', display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setSearchText('')
+              setCategoria([])
+              setMarca([])
+              setModelo([])
+              setVeiculo([])
+              setDestaque('')
+              setMinPrice('')
+              setMaxPrice('')
+              if (page !== 1) setPage(1)
+              else setTrigger((t) => t + 1)
+            }}
+          >
+            Limpar Filtros
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              if (page !== 1) setPage(1)
+              else setTrigger((t) => t + 1)
+            }}
+          >
+            Buscar
+          </Button>
+        </div>
       </div>
 
       {loading && !data ? (
@@ -324,9 +405,12 @@ export default function ProductListPage() {
                   <th>Título</th>
                   <th>Código</th>
                   <th>Preço</th>
+                  <th>Marca</th>
+                  <th>Categoria</th>
+                  <th>Modelo</th>
+                  <th>Veículo</th>
                   <th>Destaque</th>
                   <th>Status</th>
-                  <th>Relações</th>
                   <th style={{ width: 240 }}>Ações</th>
                 </tr>
               </thead>
@@ -351,6 +435,11 @@ export default function ProductListPage() {
                       <td>{row.titulo || '—'}</td>
                       <td>{row.codigo}</td>
                       <td>{row.valor_original}</td>
+                      
+                      <td>{row.marca}</td>
+                      <td>{row.nome_categoria}</td>
+                      <td>{row.modelo}</td>
+                      <td>{row.veiculo}</td>
                       <td>{row.destaque ? 'Sim' : 'Não'}</td>
                       <td>
                         {inactive ? (
@@ -359,9 +448,7 @@ export default function ProductListPage() {
                           <span className="ui-badge ui-badge--ok">Ativo</span>
                         )}
                       </td>
-                      <td style={{ fontSize: '0.8rem', maxWidth: 200 }}>
-                        {row.nome_categoria} · {row.marca} · {row.modelo} · {row.veiculo}
-                      </td>
+                      
                       <td>
                         <Link
                           to={`/produtos/${row.id}/editar`}
@@ -371,11 +458,19 @@ export default function ProductListPage() {
                           Editar
                         </Link>
                         {inactive ? (
-                          <Button variant="secondary" type="button" onClick={() => onActivate(row)}>
+                          <Button 
+                            variant="secondary" 
+                            type="button" 
+                            onClick={() => setConfirmModal({ isOpen: true, action: 'activate', row, loading: false })}
+                          >
                             Ativar
                           </Button>
                         ) : (
-                          <Button variant="danger" type="button" onClick={() => onDeactivate(row)}>
+                          <Button 
+                            variant="danger" 
+                            type="button" 
+                            onClick={() => setConfirmModal({ isOpen: true, action: 'deactivate', row, loading: false })}
+                          >
                             Desativar
                           </Button>
                         )}
@@ -411,6 +506,19 @@ export default function ProductListPage() {
           ) : null}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        loading={confirmModal.loading}
+        title={confirmModal.action === 'activate' ? 'Ativar Produto' : 'Desativar Produto'}
+        message={
+          confirmModal.action === 'activate'
+            ? `Deseja realmente ativar o produto "${confirmModal.row?.titulo || confirmModal.row?.codigo}"?`
+            : `Deseja realmente desativar o produto "${confirmModal.row?.titulo || confirmModal.row?.codigo}"?`
+        }
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmModal({ isOpen: false, row: null, action: 'activate', loading: false })}
+      />
     </>
   )
 }

@@ -10,9 +10,9 @@
 }
 
 .ui-alert--error {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #fecaca;
+  background: rgb(255 0 0);
+  border: 1px solid rgb(255 184 184);
+  color: #ffffff;
 }
 
 .ui-alert--success {
@@ -84,7 +84,7 @@
 }
 
 .ui-btn--primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: #2b8f1f;
   color: #fff;
 }
 

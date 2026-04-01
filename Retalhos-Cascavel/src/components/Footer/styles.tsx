@@ -5,7 +5,6 @@ export const Container = styled.footer`
     flex-direction: row;
     justify-content: space-around;
     align-items: center;
-    width: 100%;
     min-height: 15rem;
     background-color: #8b2023;
     color: white;

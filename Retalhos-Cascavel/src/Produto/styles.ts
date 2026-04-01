@@ -3,7 +3,6 @@ import styled from "styled-components";
 export const Container = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
@@ -31,6 +30,7 @@ export const MainImage = styled.img`
     width: 100%;
     max-width: 500px;
     height: auto;
+    max-height: 400px;
     border-radius: 8px;
     object-fit: cover;
     border: 1px solid #ccc;
