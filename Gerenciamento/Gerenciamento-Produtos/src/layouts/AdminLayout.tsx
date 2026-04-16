@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 import './AdminLayout.css'
 
 const nav = [
@@ -12,6 +13,7 @@ const nav = [
 
 export default function AdminLayout() {
   const [open, setOpen] = useState(false)
+  const { logout } = useAuth()
 
   return (
     <div className="admin-shell">
@@ -41,6 +43,14 @@ export default function AdminLayout() {
               {item.label}
             </NavLink>
           ))}
+          <button 
+            type="button"
+            className="admin-nav__link" 
+            onClick={logout}
+            style={{ marginTop: 'auto', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', textAlign: 'left', font: 'inherit', padding: '12px 16px' }}
+          >
+            Sair
+          </button>
         </nav>
       </aside>
       <div className="admin-main">

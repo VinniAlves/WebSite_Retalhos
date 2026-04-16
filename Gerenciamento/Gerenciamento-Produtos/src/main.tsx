@@ -5,12 +5,15 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import './index.css'
 import App from './App.tsx'
+import { AuthProvider } from './contexts/AuthContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
-      <ToastContainer theme="dark" position="top-right" />
+      <AuthProvider>
+        <App />
+        <ToastContainer theme="dark" position="top-right" />
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )

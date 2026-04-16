@@ -26,3 +26,9 @@ dist-ssr
 
 # Uploads
 uploads/
+
+# Firebase
+firebaseServiceAccount.json
+
+#Emails
+AllowEmailsOlny.js

@@ -28,9 +28,11 @@ export async function apiJson<T>(
 ): Promise<T> {
   const base = getApiBase()
   const url = `${base}${path.startsWith('/') ? '' : '/'}${path}`
+  const token = localStorage.getItem('@Auth:token')
   const headers: HeadersInit = {
     Accept: 'application/json',
     ...(init?.json !== undefined ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...((init?.headers as Record<string, string>) || {}),
   }
   const { json, ...rest } = init || {}
@@ -41,10 +43,16 @@ export async function apiJson<T>(
   })
   const data = await parseJsonSafe(res)
   if (!res.ok) {
+    if (res.status === 401 && !path.includes('auth')) {
+      localStorage.removeItem('@Auth:token')
+      window.location.href = '/login'
+    }
     const msg =
-      typeof data === 'object' && data !== null && 'message' in data
-        ? String((data as { message: unknown }).message)
-        : res.statusText
+      typeof data === 'object' && data !== null && 'error' in data
+        ? String((data as { error: unknown }).error)
+        : typeof data === 'object' && data !== null && 'message' in data
+          ? String((data as { message: unknown }).message)
+          : res.statusText
     throw new ApiError(msg || 'Erro na requisição', res.status, data)
   }
   return data as T
@@ -57,9 +65,15 @@ export async function apiFormData<T>(
 ): Promise<T> {
   const base = getApiBase()
   const url = `${base}${path.startsWith('/') ? '' : '/'}${path}`
-  const res = await fetch(url, { method, body: formData })
+  const token = localStorage.getItem('@Auth:token')
+  const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
+  const res = await fetch(url, { method, headers, body: formData })
   const data = await parseJsonSafe(res)
   if (!res.ok) {
+    if (res.status === 401 && !path.includes('auth')) {
+      localStorage.removeItem('@Auth:token')
+      window.location.href = '/login'
+    }
     const msg =
       typeof data === 'object' && data !== null && 'error' in data
         ? String((data as { error: unknown }).error)

@@ -53,13 +53,16 @@ function Catalogo() {
             const response = await fetch('http://localhost:8080/retalhos.cascavel/products/filter', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+
                 },
                 body: JSON.stringify(bodyData)
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+               const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Erro HTTP: ${response.status}`);
             }
 
             const data = await response.json();
