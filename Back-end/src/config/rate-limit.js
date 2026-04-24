@@ -1,13 +1,13 @@
 const  rateLimit = require("express-rate-limit");
 
- const globalLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,  
-  max: 200,
+const globalLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false
 });
 
- const loginLimiter = rateLimit({
+const loginLimiter = rateLimit({
   windowMs: 60 * 1000, 
   max: 10,
   message: {
@@ -16,10 +16,9 @@ const  rateLimit = require("express-rate-limit");
   }
 });
 
-
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 300,
+  windowMs: 1 * 60 * 1000, 
+  max: 500, 
 });
 
 

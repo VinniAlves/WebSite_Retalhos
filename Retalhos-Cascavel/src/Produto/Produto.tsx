@@ -36,14 +36,6 @@ function Produto() {
 
     useEffect(() => {
         let currentProduct = produto;
-        // if (!currentProduct) {
-        //     // Find product by id
-        //     const foundProduto = mock.carrocel.find((item) => item.idProduto === id || String((item as any).id) === id);
-        //     if (foundProduto) {
-        //         currentProduct = formatProduct(foundProduto);
-        //         setProduto(currentProduct);
-        //     }
-        // }
         
         if (currentProduct) {
              if (currentProduct.imagens && currentProduct.imagens.length > 0) {
@@ -55,8 +47,6 @@ function Produto() {
 
     if (!produto) return <S.Container><h2>Produto não encontrado</h2></S.Container>;
 
-    // // Filter related products (for example, same type but different id)
-    // const relacioandos = mock.carrocel.filter(item => String(item.idProduto) !== String(id)).slice(0, 4);
 
     useEffect(() => {
         const url = `http://localhost:8080/retalhos.cascavel/products/related/${id}`;

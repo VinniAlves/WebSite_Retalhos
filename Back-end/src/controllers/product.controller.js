@@ -149,9 +149,6 @@ exports.listAllProducts = async (req, res) => {
             filters.push(`(P.delete_logic = false OR P.delete_logic IS NULL)`);
         }
 
-        // ---------------------------------------------
-        // Função auxiliar para filtros de arrays
-        // ---------------------------------------------
         const applyArrayFilter = (fieldName, values) => {
             if (values === undefined || values === null) return;
 
@@ -166,41 +163,30 @@ exports.listAllProducts = async (req, res) => {
             filters.push(`${fieldName} = ANY($${queryValues.length}::int[])`);
         };
 
-        // Filtros
-        // ---------------------------------------------
-        // Destaque (boolean)
+
         if (destaque !== undefined && destaque !== null) {
             queryValues.push(destaque === true || destaque === "true");
             filters.push(`P.destaque = $${queryValues.length}`);
         }
 
-        // Marca
         applyArrayFilter("P.id_marca", marca);
-
-        // Categoria
+        
         applyArrayFilter("P.id_categoria", categoria);
 
-        // Veículo
         applyArrayFilter("P.id_veiculo", veiculo);
 
-        // Modelo
         applyArrayFilter("P.id_modelo", modelo);
 
-        // Preço mínimo
         if (minPrice !== undefined && minPrice !== null) {
             queryValues.push(Number(minPrice));
             filters.push(`P.valor_original >= $${queryValues.length}`);
         }
 
-        // Preço máximo
         if (maxPrice !== undefined && maxPrice !== null) {
             queryValues.push(Number(maxPrice));
             filters.push(`P.valor_original <= $${queryValues.length}`);
         }
 
-        // ---------------------------------------------
-        // Aplicar filtros
-        // ---------------------------------------------
         if (filters.length > 0) {
             query += ` WHERE ${filters.join(" AND ")} `;
         }
@@ -208,9 +194,6 @@ exports.listAllProducts = async (req, res) => {
         query += ` ORDER BY P.id ASC LIMIT $${queryValues.length + 1} OFFSET $${queryValues.length + 2}`;
         queryValues.push(limit, offset);
 
-        // ---------------------------------------------
-        // Execução da query
-        // ---------------------------------------------
         const resProduct = await db.query(query, queryValues);
 
         const totalItems =
@@ -220,9 +203,6 @@ exports.listAllProducts = async (req, res) => {
 
         const totalPages = Math.ceil(totalItems / limit);
 
-        // ---------------------------------------------
-        // Buscar imagens
-        // ---------------------------------------------
         const productsWithImages = await Promise.all(
             resProduct.rows.map(async (item) => {
                 const resImage = await db.query(
@@ -239,9 +219,6 @@ exports.listAllProducts = async (req, res) => {
             })
         );
 
-        // ---------------------------------------------
-        // Resposta final
-        // ---------------------------------------------
         res.status(200).json({
             products: productsWithImages,
             pagination: {
