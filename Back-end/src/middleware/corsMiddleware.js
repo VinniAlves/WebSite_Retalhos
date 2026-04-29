@@ -15,7 +15,6 @@ const corsMiddleware = cors({
       return callback(null, true);
     }
 
-    // 🚨 LOG DE SEGURANÇA
     console.warn(`[CORS BLOCKED]`);
     console.warn(`- Request Origin: "${origin}"`);
     console.warn(`- Allowed Origins: [${corsConfig.allowedOrigins.map(o => `"${o}"`).join(", ")}]`);

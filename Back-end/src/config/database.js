@@ -1,14 +1,18 @@
 const { Pool } = require('pg');
-const dotenv = require('dotenv');
 
-dotenv.config();
-// ==> Conexão com a Base de Dados:
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  max: 100, 
+  idleTimeoutMillis: 30000, 
+  connectionTimeoutMillis: 2000, 
 });
-pool.on('connect', () => {
-  console.log('Base de Dados conectado com sucesso!');
+
+
+pool.on('error', (err, client) => {
+  console.error('Erro inesperado em cliente inativo do banco', err);
 });
+
 module.exports = {
   query: (text, params) => pool.query(text, params),
+  pool, 
 };
