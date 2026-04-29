@@ -36,7 +36,8 @@ app.use('/retalhos.cascavel/',apiLimiter, markRoutes);
 app.use('/retalhos.cascavel/', apiLimiter,modelRoutes);
 app.use('/retalhos.cascavel/',apiLimiter, vehicleRoutes);
 app.use('/retalhos.cascavel/',apiLimiter, imageRoutes);
-app.use("/retalhos.cascavel/imagens",apiLimiter, express.static(path.join(__dirname, "..", "uploads")));
+const uploadPath = "/server/ProjectRunning/Back-end/Uploads";
+app.use("/retalhos.cascavel/imagens", apiLimiter, express.static(uploadPath));
 app.use("/retalhos.cascavel/",loginLimiter, AuthGoogle);
 
 module.exports = app;

@@ -13,7 +13,7 @@ exports.createImage = async (req, res) => {
    
     const valoresInsert = files.map((f) => [
       produtoId,
-      `/imagens/${folder}/${f.filename}`
+      `/retalhos.cascavel/imagens/${folder}/${f.filename}`
     ]);
 
    
