@@ -1,6 +1,14 @@
 const trimSlash = (s: string) => s.replace(/\/+$/, '')
 
 export function getApiBase(): string {
+  if (
+    window.location.hostname === 'retalhoscascavel.com.br' || 
+    window.location.hostname === 'www.retalhoscascavel.com.br' ||
+    window.location.hostname === 'app.retalhoscascavel.com.br'
+  ) {
+    return 'https://retalhoscascavel.com.br/api/retalhos.cascavel'
+  }
+
   if (import.meta.env.PROD) {
     return 'https://retalhoscascavel.com.br/api/retalhos.cascavel'
   }
