@@ -11,6 +11,8 @@ import Leteral from '../assets/image/Leteral.svg'
 import Transport from '../assets/image/Transport.svg'
 import * as S from "./styles";
 import converNumbers from "../utils/ConvertNumbers";
+import { getApiBase, imageUrlFromPath } from "../config/env";
+
 
 
 const background = [
@@ -65,7 +67,7 @@ function Home() {
     }, [nextImage]);
 
     useEffect(() => {
-        const url = 'http://localhost:8080/retalhos.cascavel/products/filter';
+        const url = `${getApiBase()}/products/filter`;
         const bodyRow = {
             destaque: true
         }
@@ -94,8 +96,7 @@ function Home() {
     }, []);
 
     const HandleViewPhoto = useCallback((image:string)=>{
-            const mergeImage = "http://localhost:8080/retalhos.cascavel"+image
-            return mergeImage;
+            return imageUrlFromPath(image);
     },[])
 
     return (

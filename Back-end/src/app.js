@@ -40,4 +40,8 @@ const uploadPath = "/server/ProjectRunning/Back-end/Uploads";
 app.use("/retalhos.cascavel/imagens", apiLimiter, express.static(uploadPath));
 app.use("/retalhos.cascavel/",loginLimiter, AuthGoogle);
 
+const { errorHandler } = require("./middleware/errorMiddleware");
+app.use(errorHandler);
+
+
 module.exports = app;

@@ -1,7 +1,7 @@
 const db = require("../config/database");
 const fs = require("fs");
 
-exports.createImage = async (req, res) => {
+exports.createImage = async (req, res, next) => {
   try {
     const produtoId = req.params.id;
     const folder = req.folderName;
@@ -41,29 +41,40 @@ exports.createImage = async (req, res) => {
       });
     }
 
-    console.error("Erro ao salvar imagens:", error);
-    return res.status(500).json({ error: "Erro ao salvar imagens." });
+    next(error);
   }
 };
 
-exports.viewImage = async(req,res)=>{
-    const {id} = req.params;
-    const response = await db.query('SELECT * FROM image WHERE id_produto = $1', [id]);
-    res.status(200).send(response.rows);
+exports.viewImage = async(req,res, next)=>{
+    try {
+        const {id} = req.params;
+        const response = await db.query('SELECT * FROM image WHERE id_produto = $1', [id]);
+        res.status(200).send(response.rows);
+    } catch (error) {
+        next(error);
+    }
 }
 
-exports.deleteImage = async (req,res) =>{
-    const {id} = req.params;
-    await db.query(`UPDATE image SET delete_logic = true WHERE id = ${id}`)
-    res.status(200).send({
-        message: "Imagem deletada com sucesso"
-    })
+exports.deleteImage = async (req,res, next) =>{
+    try {
+        const {id} = req.params;
+        await db.query(`UPDATE image SET delete_logic = true WHERE id = ${id}`)
+        res.status(200).send({
+            message: "Imagem deletada com sucesso"
+        })
+    } catch (error) {
+        next(error);
+    }
 }
 
-exports.activeImage = async (req,res) =>{
-    const {id} = req.params;
-    await db.query(`UPDATE image SET delete_logic = false WHERE id = ${id}`)
-    res.status(200).send({
-        message: "Imagem ativada com sucesso"
-    })
+exports.activeImage = async (req,res, next) =>{
+    try {
+        const {id} = req.params;
+        await db.query(`UPDATE image SET delete_logic = false WHERE id = ${id}`)
+        res.status(200).send({
+            message: "Imagem ativada com sucesso"
+        })
+    } catch (error) {
+        next(error);
+    }
 }

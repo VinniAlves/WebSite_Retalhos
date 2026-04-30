@@ -2,31 +2,9 @@
 const db = require("../config/database");
 
 
-exports.createProduct = async (req, res) => {
-    const {
-        id_categoria,
-        id_marca,
-        id_modelo,
-        descricao,
-        ano,
-        codigo,
-        data_entrada,
-        anuncio_ml,
-        id_veiculo,
-        valor_original,
-        valor_ml,
-        destaque,
-        titulo,
-    } = req.body;
-
-    const { rows } = await db.query(
-        `INSERT INTO produtos (
-            id_categoria, id_marca, id_modelo, descricao, ano, codigo,
-            data_entrada, anuncio_ml, id_veiculo, valor_original, valor_ml,
-            destaque, titulo, delete_logic
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false)
-        RETURNING id`,
-        [
+exports.createProduct = async (req, res, next) => {
+    try {
+        const {
             id_categoria,
             id_marca,
             id_modelo,
@@ -40,18 +18,16 @@ exports.createProduct = async (req, res) => {
             valor_ml,
             destaque,
             titulo,
-        ]
-    );
+        } = req.body;
 
-    const id = rows[0].id;
-
-    res.status(201).send({
-        message: "Produto adicionado com sucesso",
-        id,
-        body: {
-            product: {
-                id,
-                titulo,
+        const { rows } = await db.query(
+            `INSERT INTO produtos (
+                id_categoria, id_marca, id_modelo, descricao, ano, codigo,
+                data_entrada, anuncio_ml, id_veiculo, valor_original, valor_ml,
+                destaque, titulo, delete_logic
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false)
+            RETURNING id`,
+            [
                 id_categoria,
                 id_marca,
                 id_modelo,
@@ -64,12 +40,40 @@ exports.createProduct = async (req, res) => {
                 valor_original,
                 valor_ml,
                 destaque,
+                titulo,
+            ]
+        );
+
+        const id = rows[0].id;
+
+        res.status(201).send({
+            message: "Produto adicionado com sucesso",
+            id,
+            body: {
+                product: {
+                    id,
+                    titulo,
+                    id_categoria,
+                    id_marca,
+                    id_modelo,
+                    descricao,
+                    ano,
+                    codigo,
+                    data_entrada,
+                    anuncio_ml,
+                    id_veiculo,
+                    valor_original,
+                    valor_ml,
+                    destaque,
+                },
             },
-        },
-    });
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
-exports.getProductById = async (req, res) => {
+exports.getProductById = async (req, res, next) => {
     try {
         const { id } = req.params;
         const query = `
@@ -103,16 +107,12 @@ exports.getProductById = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            message: "Erro ao buscar produto",
-            error: error.message,
-        });
+        next(error);
     }
 };
 
 
-exports.listAllProducts = async (req, res) => {
+exports.listAllProducts = async (req, res, next) => {
     try {
         const {
             destaque,
@@ -229,32 +229,36 @@ exports.listAllProducts = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            message: "Erro ao listar produtos",
-            error: error.message,
-        });
+        next(error);
     }
 };
 
-exports.deleteProducts = async (req,res) =>{
-    const {id} = req.params;
-    await db.query(`UPDATE produtos SET delete_logic = true WHERE id = ${id}`)
-    res.status(200).send({
-        message: "Produto deletada com sucesso"
-    })
+exports.deleteProducts = async (req,res, next) =>{
+    try {
+        const {id} = req.params;
+        await db.query(`UPDATE produtos SET delete_logic = true WHERE id = ${id}`)
+        res.status(200).send({
+            message: "Produto deletada com sucesso"
+        })
+    } catch (error) {
+        next(error);
+    }
 }
 
 
-exports.activeProducts = async (req,res) =>{
-    const {id} = req.params;
-    await db.query(`UPDATE produtos SET delete_logic = false WHERE id = ${id}`)
-    res.status(200).send({
-        message: "Produto ativada com sucesso"
-    })
+exports.activeProducts = async (req,res, next) =>{
+    try {
+        const {id} = req.params;
+        await db.query(`UPDATE produtos SET delete_logic = false WHERE id = ${id}`)
+        res.status(200).send({
+            message: "Produto ativada com sucesso"
+        })
+    } catch (error) {
+        next(error);
+    }
 }
 
-exports.searchProducts = async (req, res) => {
+exports.searchProducts = async (req, res, next) => {
     try {
         const { search, page = 1, includeDeleted } = req.body;
         
@@ -325,16 +329,12 @@ exports.searchProducts = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).send({
-            message: "Erro ao buscar produtos",
-            error: error.message
-        });
+        next(error);
     }
 };
 
 
-exports.relatedProducts = async (req, res) => {
+exports.relatedProducts = async (req, res, next) => {
     try {
         const { id } = req.params;
         const query = `
@@ -364,15 +364,11 @@ exports.relatedProducts = async (req, res) => {
 
         res.status(200).send(productsWithImages);
     } catch (error) {
-        console.error(error);
-        res.status(500).send({
-            message: "Erro ao buscar produtos relacionados",
-            error: error.message
-        });
+        next(error);
     }
 };
 
-exports.updateProduct = async (req, res) => {
+exports.updateProduct = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { 
@@ -424,10 +420,6 @@ exports.updateProduct = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).send({
-            message: "Erro ao atualizar produto",
-            error: error.message
-        });
+        next(error);
     }
 };

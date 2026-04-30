@@ -3,6 +3,8 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import HandshakeIcon from '@mui/icons-material/Handshake';
 import * as S from "./styles";
+import { getApiBase, imageUrlFromPath } from "../config/env";
+
 
 
 function Produto() {
@@ -22,7 +24,7 @@ function Produto() {
                 ...p,
                 imagens: p.imagens.map((img: string, idx: number) => ({
                     id: String(idx),
-                    image: img.startsWith('http') ? img : `http://localhost:8080/retalhos.cascavel${img}`
+                    image: imageUrlFromPath(img)
                 }))
             };
         }
@@ -49,7 +51,7 @@ function Produto() {
 
 
     useEffect(() => {
-        const url = `http://localhost:8080/retalhos.cascavel/products/related/${id}`;
+        const url = `${getApiBase()}/products/related/${id}`;
 
         const fetchProducts = async () => {
             try {
@@ -122,7 +124,7 @@ function Produto() {
                             setProduto(formatProduct(item));
                             window.scrollTo(0, 0);
                         }}>
-                            <img src={item.imagens && item.imagens.length > 0 ? (item.imagens[0].startsWith('http') ? item.imagens[0] : `http://localhost:8080/retalhos.cascavel${item.imagens[0]}`) : ""} alt={item.titulo} />
+                            <img src={imageUrlFromPath(item.imagens?.[0])} alt={item.titulo} />
                             <S.DivText>
                                 <h2>{item.titulo}</h2>
                                 <div>

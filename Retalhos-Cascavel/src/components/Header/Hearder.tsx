@@ -5,6 +5,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from "react-router-dom"
+import { getApiBase } from "../../config/env";
+
 
 const buttonsSearch = [
     {
@@ -47,7 +49,7 @@ function Header() {
         if (!searchTerm.trim()) return;
 
         try {
-            const response = await fetch('http://localhost:8080/retalhos.cascavel/products/search', {
+            const response = await fetch(`${getApiBase()}/products/search`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -74,7 +76,7 @@ function Header() {
                 page: 1
             };
 
-            const response = await fetch('http://localhost:8080/retalhos.cascavel/products/filter', {
+            const response = await fetch(`${getApiBase()}/products/filter`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

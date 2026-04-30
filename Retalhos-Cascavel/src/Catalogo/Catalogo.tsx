@@ -2,6 +2,8 @@ import * as S from "./styles";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import converNumbers from "../utils/ConvertNumbers";
+import { getApiBase, imageUrlFromPath } from "../config/env";
+
 
 interface Categoria {
     id: number;
@@ -50,7 +52,7 @@ function Catalogo() {
                 page: currentPage
             };
 
-            const response = await fetch('http://localhost:8080/retalhos.cascavel/products/filter', {
+            const response = await fetch(`${getApiBase()}/products/filter`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -116,8 +118,8 @@ function Catalogo() {
         const fetchFilters = async () => {
             try {
                 const [catRes, marRes] = await Promise.all([
-                    fetch('http://localhost:8080/retalhos.cascavel/category'),
-                    fetch('http://localhost:8080/retalhos.cascavel/mark')
+                    fetch(`${getApiBase()}/category`),
+                    fetch(`${getApiBase()}/mark`)
                 ]);
                 
                 if (catRes.ok) {
@@ -156,8 +158,7 @@ function Catalogo() {
     };
 
     const handleViewPhoto = (image: string) => {
-        if (!image) return "";
-        return image.startsWith('http') ? image : `http://localhost:8080/retalhos.cascavel${image}`;
+        return imageUrlFromPath(image);
     };
 
     const handlePageChange = (newPage: number) => {
