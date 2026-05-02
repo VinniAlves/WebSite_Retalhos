@@ -7,6 +7,8 @@ const express = require('express');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 const index = require('./routes/index')
 
 const path = require("path");
