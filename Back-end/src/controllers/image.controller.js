@@ -4,7 +4,6 @@ const fs = require("fs");
 exports.createImage = async (req, res, next) => {
   try {
     const produtoId = req.params.id;
-    const folder = req.folderName;
     const files = req.files;
 
     if (!files || files.length === 0) {
@@ -13,7 +12,7 @@ exports.createImage = async (req, res, next) => {
    
     const valoresInsert = files.map((f) => [
       produtoId,
-      `/retalhos.cascavel/imagens/${folder}/${f.filename}`
+      `/imagens/${f.folderName}/${f.filename}`
     ]);
 
    

@@ -5,12 +5,14 @@ const fs = require("fs");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    if (!req.folderName) {
-      req.folderName = uuidv4();
-    }
-    const folder = req.folderName;
 
-    const uploadBase = "/server/ProjectRunning/Back-end/Uploads";
+    const folder = uuidv4();
+    file.folderName = folder; 
+    
+    const uploadBase = process.env.NODE_ENV === 'production'
+      ? "/server/ProjectRunning/Back-end/Uploads"
+      : path.join(__dirname, "../../Uploads");
+      
     const uploadPath = path.join(uploadBase, folder);
 
     if (!fs.existsSync(uploadPath)) {

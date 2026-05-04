@@ -1,5 +1,5 @@
 import * as S from "./styles";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import converNumbers from "../utils/ConvertNumbers";
 import { getApiBase, imageUrlFromPath } from "../config/env";
@@ -79,12 +79,21 @@ function Catalogo() {
         }
     }, [selectedCategorias, selectedMarcas, minPrice, maxPrice]);
 
+    const isClearingState = useRef(false);
+    
     useEffect(() => {
+        // Se estamos vindo de um navigate que apenas limpou o state, ignoramos este ciclo
+        if (isClearingState.current) {
+            isClearingState.current = false;
+            return;
+        }
+
         let shouldFetchAll = true;
 
         if (location.state?.products) {
             shouldFetchAll = false;
             setProducts(location.state.products);
+            
             if (location.state?.pagination) {
                 setPage(location.state.pagination.currentPage);
                 setTotalPages(location.state.pagination.totalPages);
@@ -99,19 +108,18 @@ function Catalogo() {
             setSearchTerm(location.state.searchTerm);
         }
 
-        if (shouldFetchAll) {
-            // Se não tem produtos e não há termo de busca, faz fetch inicial limpo
+        if (shouldFetchAll && !location.state) {
+            // Se não tem produtos no state e não há termo de busca, faz fetch inicial limpo
             handleFilterSearch(1);
         }
 
         // Limpa o location.state para que ao recarregar a página (F5) 
-        // ou acessar pelo URL diretamente, não segure os filtros antigos 
-        // e traga todos os itens (page 1 sem parâmetros).
+        // não segure os filtros antigos, mas marcamos que estamos limpando.
         if (location.state) {
+            isClearingState.current = true;
             navigate(location.pathname, { replace: true, state: null });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.pathname]);
+    }, [location.pathname, location.state, handleFilterSearch, navigate]);
 
     // Fetch Categorias and Marcas on mount
     useEffect(() => {

@@ -102,10 +102,9 @@ function Header() {
         }
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            handleSearch();
-        }
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        handleSearch();
     };
 
     return (
@@ -113,7 +112,7 @@ function Header() {
             <S.Search>
                 <S.Logo src={logo} alt="" onClick={()=> navigate("/")} style={{ cursor: 'pointer' }}/>
                 
-                <S.InputSearch>
+                <S.InputSearch as="form" onSubmit={handleSearchSubmit}>
                     <SearchIcon 
                         style={{ color: "#cfcfcfff", cursor: 'pointer' }} 
                         onClick={handleSearch}
@@ -123,7 +122,6 @@ function Header() {
                         placeholder="Buscar peça.." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={handleKeyDown}
                     />
                 </S.InputSearch>
 

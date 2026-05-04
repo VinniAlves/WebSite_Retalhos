@@ -7,7 +7,7 @@ const express = require('express');
 
 const app = express();
 
-app.set('trust proxy', 1);
+app.set('trust proxy', '127.0.0.1');
 
 const index = require('./routes/index')
 
@@ -39,7 +39,10 @@ app.use('/retalhos.cascavel/',apiLimiter, markRoutes);
 app.use('/retalhos.cascavel/', apiLimiter,modelRoutes);
 app.use('/retalhos.cascavel/',apiLimiter, vehicleRoutes);
 app.use('/retalhos.cascavel/',apiLimiter, imageRoutes);
-const uploadPath = "/server/ProjectRunning/Back-end/Uploads";
+const uploadPath = process.env.NODE_ENV === 'production'
+  ? "/server/ProjectRunning/Back-end/Uploads"
+  : path.join(__dirname, "../Uploads");
+
 app.use("/retalhos.cascavel/imagens", apiLimiter, express.static(uploadPath));
 app.use("/retalhos.cascavel/",loginLimiter, AuthGoogle);
 
