@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
 import { toast } from 'react-toastify'
 import { ImageUploader } from '../../components/ui/ImageUploader'
+import { maskCurrency, unmaskCurrency } from '../../utils/format'
 
 export default function ProductWizardPage() {
   const navigate = useNavigate()
@@ -26,7 +27,8 @@ export default function ProductWizardPage() {
   const [id_marca, setIdMarca] = useState('')
   const [id_modelo, setIdModelo] = useState('')
   const [id_veiculo, setIdVeiculo] = useState('')
-  const [ano, setAno] = useState(String(new Date().getFullYear()))
+  const [ano_inicial, setAnoInicial] = useState(String(new Date().getFullYear()))
+  const [ano_final, setAnoFinal] = useState(String(new Date().getFullYear()))
   const [codigo, setCodigo] = useState('')
   const [data_entrada, setDataEntrada] = useState('')
   const [anuncio_ml, setAnuncioMl] = useState('')
@@ -51,7 +53,8 @@ export default function ProductWizardPage() {
         id_veiculo: Number(id_veiculo),
         titulo,
         descricao,
-        ano: Number(ano),
+        ano_inicial: Number(ano_inicial),
+        ano_final: Number(ano_final),
         codigo,
         data_entrada,
         anuncio_ml,
@@ -221,13 +224,23 @@ export default function ProductWizardPage() {
               </select>
             </div>
             <div className="ui-field" style={{ marginBottom: 0 }}>
-              <label htmlFor="w-ano">Ano</label>
+              <label htmlFor="w-ano-inicial">Ano Inicial</label>
               <input
-                id="w-ano"
+                id="w-ano-inicial"
                 className="ui-input"
                 type="number"
-                value={ano}
-                onChange={(e) => setAno(e.target.value)}
+                value={ano_inicial}
+                onChange={(e) => setAnoInicial(e.target.value)}
+              />
+            </div>
+            <div className="ui-field" style={{ marginBottom: 0 }}>
+              <label htmlFor="w-ano-final">Ano Final</label>
+              <input
+                id="w-ano-final"
+                className="ui-input"
+                type="number"
+                value={ano_final}
+                onChange={(e) => setAnoFinal(e.target.value)}
               />
             </div>
             <div className="ui-field" style={{ marginBottom: 0 }}>
@@ -259,13 +272,13 @@ export default function ProductWizardPage() {
               />
             </div>
             <div className="ui-field" style={{ marginBottom: 0 }}>
-              <label htmlFor="w-val">Valor original</label>
+              <label htmlFor="w-val">Valor venda</label>
               <input
                 id="w-val"
                 className="ui-input"
-                placeholder="150.00"
-                value={valor_original}
-                onChange={(e) => setValorOriginal(e.target.value)}
+                placeholder="R$ 0,00"
+                value={valor_original ? maskCurrency(valor_original) : ''}
+                onChange={(e) => setValorOriginal(unmaskCurrency(e.target.value))}
               />
             </div>
           </div>

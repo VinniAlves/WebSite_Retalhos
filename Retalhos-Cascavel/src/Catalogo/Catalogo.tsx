@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import converNumbers from "../utils/ConvertNumbers";
 import { getApiBase, imageUrlFromPath } from "../config/env";
+import FilterListIcon from '@mui/icons-material/FilterList';
+import CloseIcon from '@mui/icons-material/Close';
 
 
 interface Categoria {
@@ -13,6 +15,11 @@ interface Categoria {
 interface Marca {
     id: number;
     marca: string;
+}
+
+interface Veiculo {
+    id: number;
+    veiculo: string;
 }
 
 function Catalogo() {
@@ -26,15 +33,19 @@ function Catalogo() {
     // Filter UI States
     const [isOpenCategoria, setIsOpenCategoria] = useState(true);
     const [isOpenMarca, setIsOpenMarca] = useState(true);
+    const [isOpenVeiculo, setIsOpenVeiculo] = useState(true);
     const [isOpenPreco, setIsOpenPreco] = useState(true);
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
     // Filter Data States
     const [categorias, setCategorias] = useState<Categoria[]>([]);
     const [marcas, setMarcas] = useState<Marca[]>([]);
+    const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
 
     // Selected Filters States
     const [selectedCategorias, setSelectedCategorias] = useState<number[]>(location.state?.selectedCategorias || []);
     const [selectedMarcas, setSelectedMarcas] = useState<number[]>([]);
+    const [selectedVeiculos, setSelectedVeiculos] = useState<number[]>([]);
     const [minPrice, setMinPrice] = useState<string>("");
     const [maxPrice, setMaxPrice] = useState<string>("");
     
@@ -44,9 +55,11 @@ function Catalogo() {
 
     const handleFilterSearch = useCallback(async (currentPage = 1) => {
         try {
+            setIsMobileFilterOpen(false);
             const bodyData = {
                 categoria: selectedCategorias.length > 0 ? selectedCategorias : undefined,
                 marca: selectedMarcas.length > 0 ? selectedMarcas : undefined,
+                veiculo: selectedVeiculos.length > 0 ? selectedVeiculos : undefined,
                 minPrice: minPrice ? parseFloat(minPrice) : undefined,
                 maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
                 page: currentPage
@@ -69,7 +82,7 @@ function Catalogo() {
 
             const data = await response.json();
             setProducts(data.products || []);
-            setSearchTerm(""); // Limpa o termo de busca pois agora é um filtro específico
+            setSearchTerm(""); 
             if (data.pagination) {
                 setPage(data.pagination.currentPage);
                 setTotalPages(data.pagination.totalPages);
@@ -77,12 +90,11 @@ function Catalogo() {
         } catch (error) {
             console.error("Erro ao filtrar produtos:", error);
         }
-    }, [selectedCategorias, selectedMarcas, minPrice, maxPrice]);
+    }, [selectedCategorias, selectedMarcas, selectedVeiculos, minPrice, maxPrice]);
 
     const isClearingState = useRef(false);
     
     useEffect(() => {
-        // Se estamos vindo de um navigate que apenas limpou o state, ignoramos este ciclo
         if (isClearingState.current) {
             isClearingState.current = false;
             return;
@@ -119,15 +131,16 @@ function Catalogo() {
             isClearingState.current = true;
             navigate(location.pathname, { replace: true, state: null });
         }
-    }, [location.pathname, location.state, handleFilterSearch, navigate]);
+    }, [location.pathname, location.state, navigate, handleFilterSearch]);
 
     // Fetch Categorias and Marcas on mount
     useEffect(() => {
         const fetchFilters = async () => {
             try {
-                const [catRes, marRes] = await Promise.all([
+                const [catRes, marRes, veiRes] = await Promise.all([
                     fetch(`${getApiBase()}/category`),
-                    fetch(`${getApiBase()}/mark`)
+                    fetch(`${getApiBase()}/mark`),
+                    fetch(`${getApiBase()}/vehicle`)
                 ]);
                 
                 if (catRes.ok) {
@@ -138,6 +151,11 @@ function Catalogo() {
                 if (marRes.ok) {
                     const marData = await marRes.json();
                     setMarcas(marData.map((m: any) => ({ id: m.id, marca: m.marca })));
+                }
+
+                if (veiRes.ok) {
+                    const veiData = await veiRes.json();
+                    setVeiculos(veiData.map((v: any) => ({ id: v.id, veiculo: v.veiculo })));
                 }
             } catch (error) {
                 console.error("Erro ao buscar filtros:", error);
@@ -165,6 +183,15 @@ function Catalogo() {
         }
     };
 
+    const handleCheckboxVeiculo = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = parseInt(event.target.value);
+        if (event.target.checked) {
+            setSelectedVeiculos(prev => [...prev, value]);
+        } else {
+            setSelectedVeiculos(prev => prev.filter(id => id !== value));
+        }
+    };
+
     const handleViewPhoto = (image: string) => {
         return imageUrlFromPath(image);
     };
@@ -178,9 +205,16 @@ function Catalogo() {
     return (
         <>
            <S.Container>
-            <S.ContainerFilter> 
+            <S.MobileFilterToggle onClick={() => setIsMobileFilterOpen(true)}>
+                <FilterListIcon /> Filtrar Produtos
+            </S.MobileFilterToggle>
+
+            <S.ContainerFilter isOpen={isMobileFilterOpen}> 
                 <S.FilterHeaderTop>
                     <h2>Filtros</h2>
+                    <S.CloseButton onClick={() => setIsMobileFilterOpen(false)}>
+                        <CloseIcon />
+                    </S.CloseButton>
                 </S.FilterHeaderTop>
                 
                 <S.FilterBody>
@@ -213,6 +247,21 @@ function Catalogo() {
                                         checked={selectedMarcas.includes(item.id)}
                                     /> 
                                     {item.marca}
+                                </S.CheckboxLabel>
+                            ))}
+                                <S.Divider/>
+                            <S.FilterHeader onClick={() => setIsOpenVeiculo(!isOpenVeiculo)}>
+                                Veículo {isOpenVeiculo ? '▲' : '▼'}
+                            </S.FilterHeader>
+                            {isOpenVeiculo && veiculos.map((item) => (
+                                <S.CheckboxLabel key={item.id}>
+                                    <input 
+                                        type="checkbox" 
+                                        value={item.id} 
+                                        onChange={handleCheckboxVeiculo} 
+                                        checked={selectedVeiculos.includes(item.id)}
+                                    /> 
+                                    {item.veiculo}
                                 </S.CheckboxLabel>
                             ))}
                         </form>
@@ -250,8 +299,11 @@ function Catalogo() {
                             <S.ProductCard key={index} onClick={() => navigate(`/produto/${item.id}`, { state: { product: item } })}>
                                 <img src={handleViewPhoto(item.imagens[0])} alt={item.titulo} />
                                 <S.ProductInfo>
-                                    <h3>{item.titulo}</h3>
-                                    <p>{item.nome_categoria}</p>
+                                    <div>
+                                        <h3>{item.titulo}</h3>
+                                        <p>{item.nome_categoria}</p>
+                                        <p style={{fontWeight: "bold", color: "#000000ff" }}>{item.veiculo}</p>
+                                    </div>
                                     <span>R$ {converNumbers(item.valor_original)}</span>
                                 </S.ProductInfo>
                             </S.ProductCard>
@@ -317,4 +369,4 @@ function Catalogo() {
     )
 }
 
-export default Catalogo
+export default Catalogo

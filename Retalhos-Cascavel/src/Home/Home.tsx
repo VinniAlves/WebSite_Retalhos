@@ -144,6 +144,7 @@ function Home() {
                                 <h2>{item.titulo}</h2>
                                 <div>
                                     <p>{item.nome_categoria}</p>
+                                    <p style={{fontWeight: "bold" }}>{item.veiculo}</p>
                                     <p style={{color: "#8b2023", fontWeight: "bold" }}>R$ {converNumbers(item.valor_original)}</p>
                                 </div>
                                 

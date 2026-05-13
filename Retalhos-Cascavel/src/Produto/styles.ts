@@ -141,6 +141,7 @@ export const DescriptionText = styled.p`
     font-size: 1rem;
     color: #555;
     line-height: 1.6;
+    white-space: pre-wrap;
 `;
 
 export const RelatedSection = styled.div`

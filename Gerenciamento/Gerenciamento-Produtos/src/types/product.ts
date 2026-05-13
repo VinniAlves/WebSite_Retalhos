@@ -3,7 +3,8 @@ import type { PaginationMeta } from './pagination'
 export interface ProductListRow {
   id: number
   descricao: string
-  ano: number
+  ano_inicial: number
+  ano_final: number
   codigo: string
   anuncio_ml: string | null
   valor_original: string | number
@@ -49,7 +50,8 @@ export interface CreateProductBody {
   id_veiculo: number
   titulo: string
   descricao: string
-  ano: number
+  ano_inicial: number
+  ano_final: number
   codigo: string
   data_entrada: string
   data_venda?: string | null
@@ -68,7 +70,8 @@ export interface CreateProductResponse {
 export interface ProductDetail {
   id: number
   descricao: string
-  ano: number
+  ano_inicial: number
+  ano_final: number
   codigo: string
   anuncio_ml: string | null
   valor_original: string | number
@@ -101,7 +104,8 @@ export type ProductUpdateBody = Partial<{
   id_veiculo: number
   titulo: string
   descricao: string
-  ano: number
+  ano_inicial: number
+  ano_final: number
   codigo: string
   data_entrada: string
   anuncio_ml: string

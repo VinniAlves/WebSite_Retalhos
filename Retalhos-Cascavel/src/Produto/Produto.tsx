@@ -4,7 +4,7 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import HandshakeIcon from '@mui/icons-material/Handshake';
 import * as S from "./styles";
 import { getApiBase, imageUrlFromPath } from "../config/env";
-
+import converNumbers from "../utils/ConvertNumbers";
 
 
 function Produto() {
@@ -95,7 +95,7 @@ function Produto() {
 
                 <S.InfoSection>
                     <S.Title>{produto.titulo}</S.Title>
-                    <S.Price>{produto.valor_original}</S.Price>
+                    <S.Price style={{ color: "#8b2023", fontWeight: "bold" }}> R$ {converNumbers(produto.valor_original)}</S.Price>
                     
                     <S.ButtonContainer>
                         <S.WppButton href={`https://wa.me/5545999870968?text=Olá, tenho interesse no produto: ${produto.titulo} - Código: ${produto.codigo}`} target="_blank" rel="noopener noreferrer">

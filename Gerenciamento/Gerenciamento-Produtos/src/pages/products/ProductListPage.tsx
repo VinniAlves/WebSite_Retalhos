@@ -13,6 +13,7 @@ import { toast } from 'react-toastify'
 import type { ProductListRow } from '../../types/product'
 
 import { useRef } from 'react'
+import { formatCurrency, maskCurrency, unmaskCurrency } from '../../utils/format'
 
 function MultiSelectField({
   label,
@@ -289,9 +290,9 @@ export default function ProductListPage() {
             <input
               id="minp"
               className="ui-input"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-              placeholder="1000.00"
+              value={minPrice ? maskCurrency(minPrice) : ''}
+              onChange={(e) => setMinPrice(unmaskCurrency(e.target.value))}
+              placeholder="R$ 0,00"
             />
           </div>
           <div className="ui-field" style={{ marginBottom: 0 }}>
@@ -299,9 +300,9 @@ export default function ProductListPage() {
             <input
               id="maxp"
               className="ui-input"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-              placeholder="5000.00"
+              value={maxPrice ? maskCurrency(maxPrice) : ''}
+              onChange={(e) => setMaxPrice(unmaskCurrency(e.target.value))}
+              placeholder="R$ 0,00"
             />
           </div>
         </div>
@@ -434,7 +435,7 @@ export default function ProductListPage() {
                       </td>
                       <td>{row.titulo || '—'}</td>
                       <td>{row.codigo}</td>
-                      <td>{row.valor_original}</td>
+                      <td>{formatCurrency(row.valor_original)}</td>
                       
                       <td>{row.marca}</td>
                       <td>{row.nome_categoria}</td>

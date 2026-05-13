@@ -9,7 +9,8 @@ exports.createProduct = async (req, res, next) => {
             id_marca,
             id_modelo,
             descricao,
-            ano,
+            ano_inicial,
+            ano_final,
             codigo,
             data_entrada,
             anuncio_ml,
@@ -22,17 +23,18 @@ exports.createProduct = async (req, res, next) => {
 
         const { rows } = await db.query(
             `INSERT INTO produtos (
-                id_categoria, id_marca, id_modelo, descricao, ano, codigo,
+                id_categoria, id_marca, id_modelo, descricao, ano_inicial, ano_final, codigo,
                 data_entrada, anuncio_ml, id_veiculo, valor_original, valor_ml,
                 destaque, titulo, delete_logic
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, false)
             RETURNING id`,
             [
                 id_categoria,
                 id_marca,
                 id_modelo,
                 descricao,
-                ano,
+                ano_inicial,
+                ano_final,
                 codigo,
                 data_entrada,
                 anuncio_ml,
@@ -57,7 +59,8 @@ exports.createProduct = async (req, res, next) => {
                     id_marca,
                     id_modelo,
                     descricao,
-                    ano,
+                    ano_inicial,
+                    ano_final,
                     codigo,
                     data_entrada,
                     anuncio_ml,
@@ -78,7 +81,7 @@ exports.getProductById = async (req, res, next) => {
         const { id } = req.params;
         const query = `
             SELECT
-                P.id, P.descricao, P.ano, P.codigo, P.anuncio_ml, P.valor_original, P.titulo,
+                P.id, P.descricao, P.ano_inicial, P.ano_final, P.codigo, P.anuncio_ml, P.valor_original, P.titulo,
                 P.id_categoria, P.id_marca, P.id_modelo, P.id_veiculo,
                 P.data_entrada, P.destaque, P.valor_ml, P.valor_venda,
                 P.delete_logic,
@@ -126,12 +129,12 @@ exports.listAllProducts = async (req, res, next) => {
             includeDeleted,
         } = req.body;
 
-        const limit = 30;
+        const limit = 24;
         const offset = (page - 1) * limit;
 
         let query = `
             SELECT 
-            P.id, P.descricao, P.ano, P.codigo, P.anuncio_ml, P.valor_original, P.titulo,
+            P.id, P.descricao, P.ano_inicial, P.ano_final, P.codigo, P.anuncio_ml, P.valor_original, P.titulo,
             P.delete_logic, P.destaque,
             M.marca, Md.modelo, C.nome_categoria, C.descricao as categoria_descricao, V.veiculo,
             COUNT(*) OVER() AS total_count
@@ -268,7 +271,7 @@ exports.searchProducts = async (req, res, next) => {
 
         let query = `
             SELECT 
-                P.id, P.descricao, P.ano, P.codigo, P.anuncio_ml, P.valor_original, P.titulo,
+                P.id, P.descricao, P.ano_inicial, P.ano_final, P.codigo, P.anuncio_ml, P.valor_original, P.titulo,
                 P.delete_logic, P.destaque,
                 M.marca, Md.modelo, C.nome_categoria, C.descricao as categoria_descricao, V.veiculo,
                 COUNT(*) OVER() AS total_count
@@ -339,7 +342,7 @@ exports.relatedProducts = async (req, res, next) => {
         const { id } = req.params;
         const query = `
             SELECT 
-                P.id, P.descricao, P.ano, P.codigo, P.anuncio_ml, P.valor_original, P.titulo,
+                P.id, P.descricao, P.ano_inicial, P.ano_final, P.codigo, P.anuncio_ml, P.valor_original, P.titulo,
                 M.marca, Md.modelo, C.nome_categoria, C.descricao as categoria_descricao, V.veiculo
             FROM produtos P 
             INNER JOIN marca M ON P.id_marca = M.id 
@@ -372,7 +375,7 @@ exports.updateProduct = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { 
-            id_categoria, id_marca, id_modelo, descricao, ano, codigo,
+            id_categoria, id_marca, id_modelo, descricao, ano_inicial, ano_final, codigo,
             data_entrada, anuncio_ml, id_veiculo, valor_original, valor_ml, 
             destaque, titulo, valor_venda 
         } = req.body;
@@ -393,7 +396,8 @@ exports.updateProduct = async (req, res, next) => {
         updateField('id_marca', id_marca);
         updateField('id_modelo', id_modelo);
         updateField('descricao', descricao);
-        updateField('ano', ano);
+        updateField('ano_inicial', ano_inicial);
+        updateField('ano_final', ano_final);
         updateField('codigo', codigo);
         updateField('data_entrada', data_entrada);
         updateField('anuncio_ml', anuncio_ml);

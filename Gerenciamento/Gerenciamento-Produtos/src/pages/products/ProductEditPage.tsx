@@ -13,6 +13,7 @@ import { toast } from 'react-toastify'
 import { ImageUploader } from '../../components/ui/ImageUploader'
 import type { ProductDetail } from '../../types/product'
 import type { ProductImageRow } from '../../types/image'
+import { maskCurrency, unmaskCurrency } from '../../utils/format'
 
 type FormState = {
   titulo: string
@@ -21,7 +22,8 @@ type FormState = {
   id_marca: string
   id_modelo: string
   id_veiculo: string
-  ano: string
+  ano_inicial: string
+  ano_final: string
   codigo: string
   data_entrada: string
   anuncio_ml: string
@@ -39,13 +41,14 @@ function productToForm(p: ProductDetail): FormState {
     id_marca: String(p.id_marca),
     id_modelo: String(p.id_modelo),
     id_veiculo: String(p.id_veiculo),
-    ano: String(p.ano ?? ''),
+    ano_inicial: String(p.ano_inicial ?? ''),
+    ano_final: String(p.ano_final ?? ''),
     codigo: p.codigo ?? '',
     data_entrada: p.data_entrada ? String(p.data_entrada) : '',
     anuncio_ml: p.anuncio_ml ?? '',
-    valor_original: String(p.valor_original ?? ''),
-    valor_ml: p.valor_ml != null ? String(p.valor_ml) : '',
-    valor_venda: p.valor_venda != null ? String(p.valor_venda) : '',
+    valor_original: p.valor_original != null ? Number(p.valor_original).toFixed(2) : '',
+    valor_ml: p.valor_ml != null ? Number(p.valor_ml).toFixed(2) : '',
+    valor_venda: p.valor_venda != null ? Number(p.valor_venda).toFixed(2) : '',
     destaque: Boolean(p.destaque),
   }
 }
@@ -124,7 +127,8 @@ export default function ProductEditPage() {
     if (form.id_marca !== initial.id_marca) out.id_marca = num(form.id_marca)
     if (form.id_modelo !== initial.id_modelo) out.id_modelo = num(form.id_modelo)
     if (form.id_veiculo !== initial.id_veiculo) out.id_veiculo = num(form.id_veiculo)
-    if (form.ano !== initial.ano) out.ano = num(form.ano)
+    if (form.ano_inicial !== initial.ano_inicial) out.ano_inicial = num(form.ano_inicial)
+    if (form.ano_final !== initial.ano_final) out.ano_final = num(form.ano_final)
     if (form.codigo !== initial.codigo) out.codigo = form.codigo
     if (form.data_entrada !== initial.data_entrada) out.data_entrada = form.data_entrada
     if (form.anuncio_ml !== initial.anuncio_ml) out.anuncio_ml = form.anuncio_ml
@@ -311,13 +315,23 @@ export default function ProductEditPage() {
                 </select>
               </div>
               <div className="ui-field" style={{ marginBottom: 0 }}>
-                <label htmlFor="e-ano">Ano</label>
+                <label htmlFor="e-ano-inicial">Ano Inicial</label>
                 <input
-                  id="e-ano"
+                  id="e-ano-inicial"
                   className="ui-input"
                   type="number"
-                  value={form.ano}
-                  onChange={(e) => setForm({ ...form, ano: e.target.value })}
+                  value={form.ano_inicial}
+                  onChange={(e) => setForm({ ...form, ano_inicial: e.target.value })}
+                />
+              </div>
+              <div className="ui-field" style={{ marginBottom: 0 }}>
+                <label htmlFor="e-ano-final">Ano Final</label>
+                <input
+                  id="e-ano-final"
+                  className="ui-input"
+                  type="number"
+                  value={form.ano_final}
+                  onChange={(e) => setForm({ ...form, ano_final: e.target.value })}
                 />
               </div>
               <div className="ui-field" style={{ marginBottom: 0 }}>
@@ -352,8 +366,9 @@ export default function ProductEditPage() {
                 <input
                   id="e-vo"
                   className="ui-input"
-                  value={form.valor_original}
-                  onChange={(e) => setForm({ ...form, valor_original: e.target.value })}
+                  placeholder="R$ 0,00"
+                  value={form.valor_original ? maskCurrency(form.valor_original) : ''}
+                  onChange={(e) => setForm({ ...form, valor_original: unmaskCurrency(e.target.value) })}
                 />
               </div>
               <div className="ui-field" style={{ marginBottom: 0 }}>
@@ -361,8 +376,9 @@ export default function ProductEditPage() {
                 <input
                   id="e-vml"
                   className="ui-input"
-                  value={form.valor_ml}
-                  onChange={(e) => setForm({ ...form, valor_ml: e.target.value })}
+                  placeholder="R$ 0,00"
+                  value={form.valor_ml ? maskCurrency(form.valor_ml) : ''}
+                  onChange={(e) => setForm({ ...form, valor_ml: unmaskCurrency(e.target.value) })}
                 />
               </div>
               <div className="ui-field" style={{ marginBottom: 0 }}>
@@ -370,8 +386,9 @@ export default function ProductEditPage() {
                 <input
                   id="e-vv"
                   className="ui-input"
-                  value={form.valor_venda}
-                  onChange={(e) => setForm({ ...form, valor_venda: e.target.value })}
+                  placeholder="R$ 0,00"
+                  value={form.valor_venda ? maskCurrency(form.valor_venda) : ''}
+                  onChange={(e) => setForm({ ...form, valor_venda: unmaskCurrency(e.target.value) })}
                 />
               </div>
             </div>

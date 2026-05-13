@@ -3,7 +3,8 @@ declare namespace ProdutosInterface {
         id: number;
         titulo: string;
         descricao: string;
-        ano: string;
+        ano_inicial: string;
+        ano_final: string;
         codigo: string;
         anuncio_ml: string;
         valor_original: string;
