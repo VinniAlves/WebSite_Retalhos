@@ -14,11 +14,9 @@ function Produto() {
 
     const formatProduct = (p: any): ProdutosInterface.FormattedProduct | null => {
         if (!p) return null;
-        // Se já estiver formatado (mock), retorna como está
         if (p.imagens && p.imagens.length > 0 && typeof p.imagens[0] === 'object') {
             return p as ProdutosInterface.FormattedProduct;
         }
-        // Se imagens for um array de strings (API), converte para array de objetos esperado pelo template
         if (p.imagens && p.imagens.length > 0 && typeof p.imagens[0] === 'string') {
             return {
                 ...p,
@@ -28,7 +26,6 @@ function Produto() {
                 }))
             };
         }
-        // Se for um array vazio ou outro caso, garante que imagens é um array de objetos
         return { ...p, imagens: [] } as ProdutosInterface.FormattedProduct;
     };
 
@@ -38,11 +35,11 @@ function Produto() {
 
     useEffect(() => {
         let currentProduct = produto;
-        
+
         if (currentProduct) {
-             if (currentProduct.imagens && currentProduct.imagens.length > 0) {
-                 setMainImage(currentProduct.imagens[0].image);
-             }
+            if (currentProduct.imagens && currentProduct.imagens.length > 0) {
+                setMainImage(currentProduct.imagens[0].image);
+            }
         }
         window.scrollTo(0, 0);
     }, [id, produto]);
@@ -55,11 +52,11 @@ function Produto() {
 
         const fetchProducts = async () => {
             try {
-                const response = await fetch(url,{
+                const response = await fetch(url, {
                     method: 'POST',
                 });
-                
-                if(!response.ok){
+
+                if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`)
                 }
                 const data = await response.json();
@@ -81,9 +78,9 @@ function Produto() {
                     {produto.imagens && produto.imagens.length > 0 && (
                         <S.ThumbnailsContainer>
                             {produto.imagens.map((img: any) => (
-                                <S.Thumbnail 
-                                    key={img.id} 
-                                    src={img.image} 
+                                <S.Thumbnail
+                                    key={img.id}
+                                    src={img.image}
                                     alt="thumbnail"
                                     active={mainImage === img.image}
                                     onClick={() => setMainImage(img.image)}
@@ -96,7 +93,7 @@ function Produto() {
                 <S.InfoSection>
                     <S.Title>{produto.titulo}</S.Title>
                     <S.Price style={{ color: "#8b2023", fontWeight: "bold" }}> R$ {converNumbers(produto.valor_original)}</S.Price>
-                    
+
                     <S.ButtonContainer>
                         <S.WppButton href={`https://wa.me/5545999870968?text=Olá, tenho interesse no produto: ${produto.titulo} - Código: ${produto.codigo}`} target="_blank" rel="noopener noreferrer">
                             <WhatsAppIcon /> Falar no WhatsApp

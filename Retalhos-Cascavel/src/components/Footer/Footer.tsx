@@ -1,5 +1,5 @@
 import * as S from "./styles";
-import logo from '../../assets/image/Logo.png'
+import logo from '../../assets/image/NewLogo.png'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import mercadolibre from '../../assets/image/mercadolibre.svg'
 
