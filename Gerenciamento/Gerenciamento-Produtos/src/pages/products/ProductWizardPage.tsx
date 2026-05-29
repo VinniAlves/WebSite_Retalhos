@@ -49,7 +49,7 @@ export default function ProductWizardPage() {
       const payload = {
         id_categoria: Number(id_categoria),
         id_marca: Number(id_marca),
-        id_modelo: Number(id_modelo),
+        id_modelo: id_modelo ? Number(id_modelo) : null,
         id_veiculo: Number(id_veiculo),
         titulo,
         descricao,
@@ -192,7 +192,7 @@ export default function ProductWizardPage() {
               </select>
             </div>
             <div className="ui-field" style={{ marginBottom: 0 }}>
-              <label htmlFor="w-mod">Modelo *</label>
+              <label htmlFor="w-mod">Modelo</label>
               <select
                 id="w-mod"
                 className="ui-select"
@@ -302,7 +302,6 @@ export default function ProductWizardPage() {
                 saving ||
                 !id_categoria ||
                 !id_marca ||
-                !id_modelo ||
                 !id_veiculo ||
                 !titulo.trim()
               }

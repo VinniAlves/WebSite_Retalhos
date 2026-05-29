@@ -9,7 +9,7 @@ declare namespace ProdutosInterface {
         anuncio_ml: string;
         valor_original: string;
         marca: string;
-        modelo: string;
+        modelo: string | null;
         nome_categoria: string;
         categoria_descricao: string;
         veiculo: string;

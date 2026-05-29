@@ -12,7 +12,7 @@ export interface ProductListRow {
   destaque?: boolean
   delete_logic?: boolean
   marca: string
-  modelo: string
+  modelo: string | null
   nome_categoria: string
   categoria_descricao?: string
   veiculo: string
@@ -46,7 +46,7 @@ export interface ProductListResponse {
 export interface CreateProductBody {
   id_categoria: number
   id_marca: number
-  id_modelo: number
+  id_modelo: number | null
   id_veiculo: number
   titulo: string
   descricao: string
@@ -78,7 +78,7 @@ export interface ProductDetail {
   titulo: string | null
   id_categoria: number
   id_marca: number
-  id_modelo: number
+  id_modelo: number | null
   id_veiculo: number
   data_entrada: string | null
   destaque: boolean
@@ -86,7 +86,7 @@ export interface ProductDetail {
   valor_venda?: string | number | null
   delete_logic?: boolean
   marca: string
-  modelo: string
+  modelo: string | null
   nome_categoria: string
   categoria_descricao?: string
   veiculo: string
@@ -100,7 +100,7 @@ export interface ProductDetailResponse {
 export type ProductUpdateBody = Partial<{
   id_categoria: number
   id_marca: number
-  id_modelo: number
+  id_modelo?: number | null
   id_veiculo: number
   titulo: string
   descricao: string

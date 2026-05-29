@@ -39,7 +39,7 @@ function productToForm(p: ProductDetail): FormState {
     descricao: p.descricao ?? '',
     id_categoria: String(p.id_categoria),
     id_marca: String(p.id_marca),
-    id_modelo: String(p.id_modelo),
+    id_modelo: p.id_modelo != null ? String(p.id_modelo) : '',
     id_veiculo: String(p.id_veiculo),
     ano_inicial: String(p.ano_inicial ?? ''),
     ano_final: String(p.ano_final ?? ''),
@@ -125,7 +125,8 @@ export default function ProductEditPage() {
     if (form.descricao !== initial.descricao) out.descricao = form.descricao
     if (form.id_categoria !== initial.id_categoria) out.id_categoria = num(form.id_categoria)
     if (form.id_marca !== initial.id_marca) out.id_marca = num(form.id_marca)
-    if (form.id_modelo !== initial.id_modelo) out.id_modelo = num(form.id_modelo)
+    if (form.id_modelo !== initial.id_modelo)
+      out.id_modelo = form.id_modelo ? num(form.id_modelo) : null
     if (form.id_veiculo !== initial.id_veiculo) out.id_veiculo = num(form.id_veiculo)
     if (form.ano_inicial !== initial.ano_inicial) out.ano_inicial = num(form.ano_inicial)
     if (form.ano_final !== initial.ano_final) out.ano_final = num(form.ano_final)
@@ -292,6 +293,7 @@ export default function ProductEditPage() {
                   value={form.id_modelo}
                   onChange={(e) => setForm({ ...form, id_modelo: e.target.value })}
                 >
+                  <option value="">Selecione</option>
                   {activeModels.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.modelo}

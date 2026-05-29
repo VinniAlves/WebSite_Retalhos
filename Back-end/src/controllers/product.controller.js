@@ -88,7 +88,7 @@ exports.getProductById = async (req, res, next) => {
                 M.marca, Md.modelo, C.nome_categoria, C.descricao AS categoria_descricao, V.veiculo
             FROM produtos P
             INNER JOIN marca M ON P.id_marca = M.id
-            INNER JOIN modelo Md ON P.id_modelo = Md.id
+            LEFT JOIN modelo Md ON P.id_modelo = Md.id
             INNER JOIN categoria C ON P.id_categoria = C.id
             INNER JOIN veiculos V ON P.id_veiculo = V.id
             WHERE P.id = $1
@@ -140,7 +140,7 @@ exports.listAllProducts = async (req, res, next) => {
             COUNT(*) OVER() AS total_count
             FROM produtos P 
             INNER JOIN marca M ON P.id_marca = M.id 
-            INNER JOIN modelo Md ON P.id_modelo = Md.id  
+            LEFT JOIN modelo Md ON P.id_modelo = Md.id  
             INNER JOIN categoria C ON P.id_categoria = C.id  
             INNER JOIN veiculos V ON P.id_veiculo = V.id
         `;
@@ -277,7 +277,7 @@ exports.searchProducts = async (req, res, next) => {
                 COUNT(*) OVER() AS total_count
             FROM produtos P 
             INNER JOIN marca M ON P.id_marca = M.id 
-            INNER JOIN modelo Md ON P.id_modelo = Md.id  
+            LEFT JOIN modelo Md ON P.id_modelo = Md.id  
             INNER JOIN categoria C ON P.id_categoria = C.id  
             INNER JOIN veiculos V ON P.id_veiculo = V.id
             WHERE 1=1
@@ -346,7 +346,7 @@ exports.relatedProducts = async (req, res, next) => {
                 M.marca, Md.modelo, C.nome_categoria, C.descricao as categoria_descricao, V.veiculo
             FROM produtos P 
             INNER JOIN marca M ON P.id_marca = M.id 
-            INNER JOIN modelo Md ON P.id_modelo = Md.id  
+            LEFT JOIN modelo Md ON P.id_modelo = Md.id  
             INNER JOIN categoria C ON P.id_categoria = C.id  
             INNER JOIN veiculos V ON P.id_veiculo = V.id
             WHERE P.id_categoria = $1
