@@ -206,21 +206,29 @@ exports.listAllProducts = async (req, res, next) => {
 
         const totalPages = Math.ceil(totalItems / limit);
 
-        const productsWithImages = await Promise.all(
-            resProduct.rows.map(async (item) => {
-                const resImage = await db.query(
-                    "SELECT caminho_image FROM image WHERE id_produto = $1",
-                    [item.id]
-                );
+        const productIds = resProduct.rows.map(item => item.id);
+        const imagesMap = {};
 
-                const { total_count, ...productData } = item;
+        if (productIds.length > 0) {
+            const resImages = await db.query(
+                "SELECT id_produto, caminho_image FROM image WHERE id_produto = ANY($1) AND (delete_logic = false OR delete_logic IS NULL)",
+                [productIds]
+            );
+            resImages.rows.forEach(img => {
+                if (!imagesMap[img.id_produto]) {
+                    imagesMap[img.id_produto] = [];
+                }
+                imagesMap[img.id_produto].push(img.caminho_image);
+            });
+        }
 
-                return {
-                    ...productData,
-                    imagens: resImage.rows.map((img) => img.caminho_image),
-                };
-            })
-        );
+        const productsWithImages = resProduct.rows.map(item => {
+            const { total_count, ...productData } = item;
+            return {
+                ...productData,
+                imagens: imagesMap[item.id] || []
+            };
+        });
 
         res.status(200).json({
             products: productsWithImages,
@@ -311,16 +319,29 @@ exports.searchProducts = async (req, res, next) => {
         const totalItems = resProduct.rows.length > 0 ? parseInt(resProduct.rows[0].total_count) : 0;
         const totalPages = Math.ceil(totalItems / limit);
 
-        const productsWithImages = await Promise.all(resProduct.rows.map(async (item) => {
-            const resImage = await db.query('SELECT caminho_image FROM image WHERE id_produto = $1', [item.id]);
-            
+        const productIds = resProduct.rows.map(item => item.id);
+        const imagesMap = {};
+
+        if (productIds.length > 0) {
+            const resImages = await db.query(
+                "SELECT id_produto, caminho_image FROM image WHERE id_produto = ANY($1) AND (delete_logic = false OR delete_logic IS NULL)",
+                [productIds]
+            );
+            resImages.rows.forEach(img => {
+                if (!imagesMap[img.id_produto]) {
+                    imagesMap[img.id_produto] = [];
+                }
+                imagesMap[img.id_produto].push(img.caminho_image);
+            });
+        }
+
+        const productsWithImages = resProduct.rows.map(item => {
             const { total_count, ...productData } = item;
-            
             return {
                 ...productData,
-                imagens: resImage.rows.map(img => img.caminho_image)
+                imagens: imagesMap[item.id] || []
             };
-        }));
+        });
 
         res.status(200).send({
             products: productsWithImages,
@@ -349,21 +370,37 @@ exports.relatedProducts = async (req, res, next) => {
             LEFT JOIN modelo Md ON P.id_modelo = Md.id  
             INNER JOIN categoria C ON P.id_categoria = C.id  
             INNER JOIN veiculos V ON P.id_veiculo = V.id
-            WHERE P.id_categoria = $1
-            AND (P.delete_logic = false)
+            WHERE P.id_categoria = (SELECT id_categoria FROM produtos WHERE id = $1)
+            AND P.id <> $1
+            AND (P.delete_logic = false OR P.delete_logic IS NULL)
             ORDER BY RANDOM() 
             LIMIT 8
         `;
         
         const { rows } = await db.query(query, [id]);
 
-        const productsWithImages = await Promise.all(rows.map(async (item) => {
-            const resImage = await db.query('SELECT caminho_image FROM image WHERE id_produto = $1', [item.id]);
+        const productIds = rows.map(item => item.id);
+        const imagesMap = {};
+
+        if (productIds.length > 0) {
+            const resImages = await db.query(
+                "SELECT id_produto, caminho_image FROM image WHERE id_produto = ANY($1) AND (delete_logic = false OR delete_logic IS NULL)",
+                [productIds]
+            );
+            resImages.rows.forEach(img => {
+                if (!imagesMap[img.id_produto]) {
+                    imagesMap[img.id_produto] = [];
+                }
+                imagesMap[img.id_produto].push(img.caminho_image);
+            });
+        }
+
+        const productsWithImages = rows.map(item => {
             return {
                 ...item,
-                imagens: resImage.rows.map(img => img.caminho_image)
+                imagens: imagesMap[item.id] || []
             };
-        }));
+        });
 
         res.status(200).send(productsWithImages);
     } catch (error) {

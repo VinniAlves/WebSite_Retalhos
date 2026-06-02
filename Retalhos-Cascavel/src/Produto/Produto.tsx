@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import HandshakeIcon from '@mui/icons-material/Handshake';
@@ -32,6 +32,24 @@ function Produto() {
     const [produto, setProduto] = useState<ProdutosInterface.FormattedProduct | null>(formatProduct(location.state?.product));
     const [mainImage, setMainImage] = useState<string>("");
     const [produtosRelacionados, setProdutosRelacionados] = useState<ProdutosInterface.ProductProp[]>([]);
+    const carouselRef = useRef<HTMLDivElement>(null);
+
+    const handleCarouselWheel = useCallback((e: WheelEvent) => {
+        const el = carouselRef.current;
+        if (!el) return;
+        // Só intercepta se houver overflow horizontal
+        if (el.scrollWidth > el.clientWidth) {
+            e.preventDefault();
+            el.scrollLeft += e.deltaY;
+        }
+    }, []);
+
+    useEffect(() => {
+        const el = carouselRef.current;
+        if (!el) return;
+        el.addEventListener('wheel', handleCarouselWheel, { passive: false });
+        return () => el.removeEventListener('wheel', handleCarouselWheel);
+    }, [handleCarouselWheel, produtosRelacionados]);
 
     useEffect(() => {
         let currentProduct = produto;
@@ -67,7 +85,7 @@ function Produto() {
             }
         };
         fetchProducts();
-    }, []);
+    }, [id]);
 
 
     return (
@@ -114,7 +132,7 @@ function Produto() {
 
             <S.RelatedSection>
                 <S.SectionTitle>PEÇAS RELACIONADAS</S.SectionTitle>
-                <S.CarrocelContent>
+                <S.CarrocelContent ref={carouselRef}>
                     {produtosRelacionados.map((item, index) => (
                         <S.CarrocelItem key={index} onClick={() => {
                             navigate(`/produto/${item.id}`, { state: { product: item } });
